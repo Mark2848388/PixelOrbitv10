@@ -7,17 +7,28 @@ addEventListener('resize',rs);rs();
 /* ===== PNG sprites (crisp, no blur) ===== */
 const SPR={};
 const SPR_LIST=['ship','enemy0','enemy1','enemy2','enemy3','enemy4','enemy5','boss','d56','spark','nova','aegis','bg_stars','ico_play','ico_tower','ico_chest','ico_shop','ico_event','ico_clan','ico_friend','ico_set','ico_arena','ico_endless','ico_season','ico_online'];
-SPR_LIST.forEach(n=>{const i=new Image();i.src='sprites/'+n+'.png';SPR[n]=i});
+function loadSpr(n){
+  const i=new Image();
+  i.decoding='async';
+  // github.io: support both /sprites/x.png and /x.png (flat upload)
+  const paths=['sprites/'+n+'.png', n+'.png', './sprites/'+n+'.png'];
+  let p=0;i.onerror=()=>{p++;if(p<paths.length)i.src=paths[p]};
+  i.src=paths[0];
+  SPR[n]=i;
+}
+SPR_LIST.forEach(loadSpr);
 function drawIcoSpr(name,x,y,sc){
-  return drawSpr('ico_'+name,x,y,sc||1);
+  try{return drawSpr('ico_'+name,x,y,sc||1)}catch(e){return false}
 }
 function drawSpr(name,x,y,sc){
-  const im=SPR[name];if(!im||!im.complete||!im.naturalWidth)return false;
-  sc=sc||1;
-  const w=im.naturalWidth*sc,h=im.naturalHeight*sc;
-  g.imageSmoothingEnabled=false;
-  try{g.drawImage(im,x-w/2,y-h/2,w,h)}catch(e){return false}
-  return true;
+  try{
+    const im=SPR[name];if(!im||!im.complete||!im.naturalWidth)return false;
+    sc=sc||1;
+    const w=im.naturalWidth*sc,h=im.naturalHeight*sc;
+    g.imageSmoothingEnabled=false;
+    g.drawImage(im,x-w/2,y-h/2,w,h);
+    return true;
+  }catch(e){return false}
 }
 
 /* ===== 10 WORLDS ===== */
@@ -880,7 +891,7 @@ function home(){
   if(D.banned){bg(0,0);tx('Аккаунт заблокирован',270,H/2,22,'#ff5a7a','center');return}
   try{claimAdminGrants(true)}catch(e){}
   bg(0,10);
-  if(SPR.bg_stars&&SPR.bg_stars.complete){g.globalAlpha=0.3;g.imageSmoothingEnabled=false;for(let yy=0;yy<H;yy+=256)for(let xx=0;xx<540;xx+=256)g.drawImage(SPR.bg_stars,xx,yy);g.globalAlpha=1}
+  try{if(SPR.bg_stars&&SPR.bg_stars.complete&&SPR.bg_stars.naturalWidth){g.globalAlpha=0.3;g.imageSmoothingEnabled=false;for(let yy=0;yy<H;yy+=256)for(let xx=0;xx<540;xx+=256)g.drawImage(SPR.bg_stars,xx,yy);g.globalAlpha=1}}catch(e){}
 
   // header
   panel(16,12,508,72,'#4a7aff');
@@ -2458,7 +2469,7 @@ let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;T+=dt;toastT-=dt;btns=[];g.clearRect(0,0,540,H);g.imageSmoothingEnabled=false;
 if(scr=='battle')upd(dt);
 const __sc={home,map,shop,battle,contracts,rank,set,chests,station,profile,skins,online,friends,friendProfile,raid,event:eventScreen,eventShop,eventBoss,tower,modules,prestige,daily,arena,season:seasonPass,clan:clanScreen,baseRaid,weeklyBoss,music:musicScreen,admin:adminPanel,modes,social,more};
-(typeof __sc[scr]==='function'?__sc[scr]:home)();
+try{(typeof __sc[scr]==='function'?__sc[scr]:home)()}catch(err){console.error(scr,err);bg(0,4);tx('Ошибка UI',270,380,22,'#ff5a7a','center');tx(String(err&&err.message||err).slice(0,50),270,420,13,'#ff8a9a','center');btn(120,480,300,55,'В меню','#4a7aff',()=>{scr='home'})}
 if(toastT>0){panel(80,H/2-24,380,48,'#ffd34a');tx(toastS,270,H/2,18,'#fff','center')}
 requestAnimationFrame(loop)}
 let drag=null;

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><title>Pixel Orbit</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#050818">
+<style>
+:root{--bg:#050818;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#050818}}
+:root[data-theme="dark"]{--bg:#050818}
+html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0"></script>
+<script src="game.js"></script>
+<script src="online.js"></script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{})</script>
+</body></html>

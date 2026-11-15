@@ -1,22 +1,45 @@
 <!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="utf-8"><title>Pixel Orbit</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <meta name="theme-color" content="#050818">
 <style>
-:root{--bg:#050818;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#050818}}
-:root[data-theme="dark"]{--bg:#050818}
-html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
-canvas{display:block;width:100%;height:100%}
+html,body{margin:0;height:100%;background:#050818;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;height:100%;background:#050818}
+#boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;
+font-family:system-ui,sans-serif;color:#cfe0ff;z-index:9;pointer-events:none;text-align:center;padding:24px}
+#boot b{color:#ffd34a;font-size:22px}
+#boot.err{pointer-events:auto;background:#050818}
+#boot.err button{margin-top:16px;padding:12px 24px;font-size:16px;border-radius:12px;border:0;background:#4a7aff;color:#fff}
 </style>
 </head>
 <body>
+<div id="boot"><b>PIXEL ORBIT</b><div style="margin-top:8px;opacity:.8">Загрузка…</div></div>
 <canvas id="c"></canvas>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0"></script>
-<script src="game.js"></script>
-<script src="online.js"></script>
-<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{})</script>
+<script>
+// Always kill old service workers + caches (fixes black screen from stale cache)
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));
+  if(window.caches)caches.keys().then(k=>k.forEach(x=>caches.delete(x)));
+}
+window.__PO_ERR=function(msg){
+  var b=document.getElementById('boot');
+  if(!b)return;
+  b.className='err';
+  b.innerHTML='<b>Ошибка загрузки</b><div style="margin-top:12px;color:#ff8a9a;max-width:320px">'+msg+'</div><button onclick="location.reload()">Обновить</button>';
+};
+window.addEventListener('error',function(e){window.__PO_ERR((e.message||'JS')+' @ '+(e.filename||'')+':'+(e.lineno||''))});
+window.addEventListener('unhandledrejection',function(e){window.__PO_ERR(String(e.reason&&e.reason.message||e.reason||'promise'))});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0" onerror="/* optional */"></script>
+<script src="game.js" onerror="__PO_ERR('Не найден game.js — залей game.js в корень репозитория')"></script>
+<script src="online.js" onerror="console.warn('online.js missing')"></script>
+<script>
+setTimeout(function(){
+  var b=document.getElementById('boot');
+  if(b && !b.classList.contains('err')) b.style.display='none';
+}, 800);
+</script>
 </body></html>

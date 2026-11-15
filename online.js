@@ -6,7 +6,42 @@
 
   if (!window.supabase || !window.supabase.createClient) {
     console.warn('[PO Online] supabase-js not loaded');
-    window.POOnline = { ready: false, status: 'no-sdk', session: null };
+  
+  async function clanChatSend(code, entry) {
+    if (!session) return { ok: false, error: 'Нужен вход' };
+    try {
+      const { error } = await db.from('clan_chat').insert({
+        clan_code: code,
+        user_id: session.user.id,
+        display_name: entry.n || 'Пилот',
+        message: (entry.m || '').slice(0, 120),
+        created_at: new Date().toISOString()
+      });
+      if (error) return { ok: false, error: error.message || 'Нет таблицы clan_chat' };
+      return { ok: true };
+    } catch (e) { return { ok: false, error: e.message }; }
+  }
+  async function clanChatLoad(code) {
+    if (!session) return { ok: false, error: 'Нужен вход' };
+    try {
+      const { data, error } = await db.from('clan_chat')
+        .select('display_name,message,created_at')
+        .eq('clan_code', code)
+        .order('created_at', { ascending: true })
+        .limit(40);
+      if (error) return { ok: false, error: error.message };
+      return { ok: true, messages: (data || []).map(r => ({ n: r.display_name, m: r.message, t: +new Date(r.created_at) })) };
+    } catch (e) { return { ok: false, error: e.message }; }
+  }
+  async function clanSetName(code, name) {
+    if (!session) return { ok: false };
+    try {
+      await db.from('clans').upsert({ code, name: (name||'').slice(0,24), updated_at: new Date().toISOString() });
+      return { ok: true };
+    } catch (e) { return { ok: false, error: e.message }; }
+  }
+
+  window.POOnline = { ready: false, status: 'no-sdk', session: null };
     return;
   }
 
@@ -272,12 +307,20 @@
 
   async function sendFriendRequest(pilotCode) {
     if (!session) return { ok: false, error: 'Не в сети' };
-    const code = (pilotCode || '').trim().toUpperCase();
-    const { data: target, error } = await db.from('pilot_profiles')
-      .select('user_id,display_name')
-      .eq('pilot_code', code)
-      .maybeSingle();
-    if (error || !target) return { ok: false, error: 'Пилот не найден' };
+    let code = (pilotCode || '').trim().toUpperCase();
+    if (!code) return { ok: false, error: 'Пустой код' };
+    if (!code.startsWith('PO-') && code.length <= 8) code = 'PO-' + code.replace(/^PO-?/,'');
+    let target = null, error = null;
+    let res = await db.from('pilot_profiles').select('user_id,display_name,pilot_code').eq('pilot_code', code).maybeSingle();
+    error = res.error; target = res.data;
+    if (!target) {
+      // try ilike contains
+      res = await db.from('pilot_profiles').select('user_id,display_name,pilot_code').ilike('pilot_code', '%' + code.replace('PO-','') + '%').limit(1).maybeSingle();
+      error = res.error; target = res.data;
+    }
+    if (error) return { ok: false, error: 'БД: ' + error.message };
+    if (!target) return { ok: false, error: 'Пилот не найден. Нужен его код PO-XXXX' };
+
     if (target.user_id === session.user.id) return { ok: false, error: 'Это ты' };
     // already friends?
     const exists = (requests || []).find(r =>
@@ -494,6 +537,41 @@
 
   boot();
 
+
+  async function clanChatSend(code, entry) {
+    if (!session) return { ok: false, error: 'Нужен вход' };
+    try {
+      const { error } = await db.from('clan_chat').insert({
+        clan_code: code,
+        user_id: session.user.id,
+        display_name: entry.n || 'Пилот',
+        message: (entry.m || '').slice(0, 120),
+        created_at: new Date().toISOString()
+      });
+      if (error) return { ok: false, error: error.message || 'Нет таблицы clan_chat' };
+      return { ok: true };
+    } catch (e) { return { ok: false, error: e.message }; }
+  }
+  async function clanChatLoad(code) {
+    if (!session) return { ok: false, error: 'Нужен вход' };
+    try {
+      const { data, error } = await db.from('clan_chat')
+        .select('display_name,message,created_at')
+        .eq('clan_code', code)
+        .order('created_at', { ascending: true })
+        .limit(40);
+      if (error) return { ok: false, error: error.message };
+      return { ok: true, messages: (data || []).map(r => ({ n: r.display_name, m: r.message, t: +new Date(r.created_at) })) };
+    } catch (e) { return { ok: false, error: e.message }; }
+  }
+  async function clanSetName(code, name) {
+    if (!session) return { ok: false };
+    try {
+      await db.from('clans').upsert({ code, name: (name||'').slice(0,24), updated_at: new Date().toISOString() });
+      return { ok: true };
+    } catch (e) { return { ok: false, error: e.message }; }
+  }
+
   window.POOnline = {
     ready: true,
     get status() { return session ? 'online' : onlineStatus; },
@@ -505,6 +583,10 @@
     get ownDamage() { return ownDamage; },
     get lastError() { return lastError; },
     get bootDone() { return bootDone; },
+
+    clanChatSend,
+    clanChatLoad,
+    clanSetName,
     signInEmail,
     signInGuest,
     signOut,

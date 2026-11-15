@@ -32,10 +32,22 @@ function drawSpr(name,x,y,sc){
 }
 
 /* ===== 10 WORLDS ===== */
-const STAGES_PER_WORLD=25;
-const WN=['Древняя Система','Кристальные Пещеры','Огненные Земли','Ледяной Фронт','Тёмные Врата','Сердце Титана','Небесный Архипелаг','Плазма-Шторм','Бездна Нуля','Колыбель Звёзд'];
-const WC=['#5a7aff','#3ad8e8','#ff7a3a','#8ad8ff','#c04aff','#ff3a4a','#7dffb0','#ff5ad0','#9aa0ff','#ffd34a'];
-const BN=['Мега-Уничтожитель','Кристальный Страж','Огненный Колосс','Ледяной Левиафан','Страж Врат','Космический Титан','Небесный Архонт','Плазменный Король','Повелитель Бездны','Звёздный Император'];
+
+const SHIP_SKINS=[
+  {id:'default',name:'Классика',col:'#7fb7ff',price:0},
+  {id:'crimson',name:'Багровый',col:'#ff5a6a',price:200},
+  {id:'gold',name:'Золотой',col:'#ffd34a',price:350},
+  {id:'toxic',name:'Токсик',col:'#7dffb0',price:300},
+  {id:'void',name:'Войд',col:'#c04aff',price:400},
+  {id:'ice',name:'Лёд',col:'#8ad8ff',price:280},
+  {id:'neon',name:'Неон',col:'#ff5ad0',price:450},
+  {id:'shadow',name:'Тень',col:'#8899bb',price:500}
+];
+
+const STAGES_PER_WORLD=50;
+const WN=['Древняя Система','Кристальные Пещеры','Огненные Земли','Ледяной Фронт','Тёмные Врата','Сердце Титана','Небесный Архипелаг','Плазма-Шторм','Бездна Нуля','Колыбель Звёзд','Зеркальный Пояс','Хроно-Разлом','Пепел Богов','Квантовый Рубеж','Финал Орбиты'];
+const WC=['#5a7aff','#3ad8e8','#ff7a3a','#8ad8ff','#c04aff','#ff3a4a','#7dffb0','#ff5ad0','#9aa0ff','#ffd34a','#a0ffe0','#ffaa66','#cc88ff','#66ffaa','#ff6688'];
+const BN=['Мега-Уничтожитель','Кристальный Страж','Огненный Колосс','Ледяной Левиафан','Страж Врат','Космический Титан','Небесный Архонт','Плазменный Король','Повелитель Бездны','Звёздный Император','Зеркальный Страж','Хроно-Тиран','Пепельный Дракон','Квант-Гидра','Финальный Оверлорд'];
 
 /* ===== EVENTS ===== */
 const EVENT_CYCLE_SEC = 3600; // 1 hour cycle
@@ -108,7 +120,7 @@ function eventNow(){
 }
 function refreshRaidKeys(){
   const day=new Date().toDateString();
-  if(!D.eventRaid)D.eventRaid={keys:3,keyDay:'',bossHp:500000,bossMax:500000,totalDmg:0,phase:1};
+  if(!D.eventRaid)D.eventRaid={keys:3,keyDay:'',bossHp:999999999,bossMax:999999999,totalDmg:0,phase:1};
   if(D.eventRaid.keyDay!==day){D.eventRaid.keyDay=day;D.eventRaid.keys=3;save()}
 }
 function ensureEventState(){
@@ -210,14 +222,15 @@ const DEF={
   tower:{floor:0,best:0,day:''},
   gifts:{},
   fenixUsed:false,
-  eventRaid:{keys:3,keyDay:'',bossHp:500000,bossMax:500000,totalDmg:0,phase:1},
+  eventRaid:{keys:3,keyDay:'',bossHp:999999999,bossMax:999999999,totalDmg:0,phase:1},
   eventCur:0, // event currency
   eventShopBought:{},
   season:{id:1,xp:0,prem:false,claimedFree:{},claimedPrem:{},start:0},
   clan:{code:'',name:'',role:'none',raidHp:200000,raidMax:200000,raidDmg:0},
   baseDef:{turrets:1,lastRaid:0},
   weeklyBoss:{week:'',top:[]},
-  playlist:[]
+  playlist:[],
+  shipSkins:{owned:['default'],eq:'default'}
 };
 let D=JSON.parse(JSON.stringify(DEF));
 try{Object.assign(D,JSON.parse(localStorage.getItem('po10')||'{}'))}catch(e){}
@@ -236,7 +249,7 @@ if(!D.modules.equip)D.modules.equip={dmg:null,fire:null,skill:null};
 if(!D.prestige)D.prestige={level:0,bonus:0};
 if(!D.tower)D.tower={floor:0,best:0,day:''};
 if(!D.gifts)D.gifts={};
-if(!D.eventRaid)D.eventRaid={keys:3,keyDay:'',bossHp:500000,bossMax:500000,totalDmg:0,phase:1};
+if(!D.eventRaid)D.eventRaid={keys:3,keyDay:'',bossHp:999999999,bossMax:999999999,totalDmg:0,phase:1};
 if(D.eventCur==null)D.eventCur=0;
 if(!D.eventShopBought)D.eventShopBought={};
 if(!D.dailyBox)D.dailyBox={day:'',streak:0,claimed:false};
@@ -246,7 +259,9 @@ if(!D.season.start)D.season.start=Date.now();
 if(!D.clan)D.clan={code:'',name:'',role:'none',raidHp:200000,raidMax:200000,raidDmg:0};
 if(!D.baseDef)D.baseDef={turrets:1,lastRaid:0};
 if(!D.weeklyBoss)D.weeklyBoss={week:'',top:[]};
-if(!D.playlist)D.playlist=[];if(!D.prof)D.prof={name:'Пилот',title:0,uid:'',avatar:''};if(D.prof.avatar==null)D.prof.avatar='';
+if(!D.playlist)D.playlist=[];
+if(!D.shipSkins)D.shipSkins={owned:['default'],eq:'default'};
+if(!D.shipSkins.owned)D.shipSkins={owned:['default'],eq:'default'};if(!D.prof)D.prof={name:'Пилот',title:0,uid:'',avatar:''};if(D.prof.avatar==null)D.prof.avatar='';
 // clean old merge data if any
 delete D.units;
 const save=()=>{try{localStorage.setItem('po10',JSON.stringify(D))}catch(e){}};
@@ -472,7 +487,7 @@ const CSPR={
   comet:['...aaa...','..awwwa..','.awkkwa.','..awwa..','...uu...','..uuuu..','.u.uu.u.','u..uu..u','.uu..uu.','..u..u..','........'],
   boulder:['...ddd...','..dwwwd..','.dwkkwd.','.dwwwwd.','..dddd..','...dd...','..dddd..','.dddddd.','dd.dd.dd','.dd..dd.','........'],
   fenix:['...ooo...','..owowo..','.owwwwo.','.oorrro.','..oooo..','...rr...','..rrrr..','.r.rr.r.','r..rr..r','.rr..rr.','........'],
-  d56:['...kkkkk...','..kkkkkkk..','.kkkkkkkkk.','.kwwkwwkww.','.kwkwwwkwk.','.kwwwwwkwk.','.kkwwwwwkk.','..kwwwwwk..','...bbbbb...','..bbddbbb..','.bddwwwddb.','.bdwdwdwdb.','..bbdbdbb..','...b...b...','..kk...kk..']
+  d56:['....kkkk....','...kkkkkk...','..kkkkkkkk..','..kwwwwwwk..','.kwwwwwwwwk.','.kwggwwggwk.','.kwgwwwwgwk.','.kwwwwwwwwk.','.kwwwsswwwk.','..kwwwwwwk..','...kbbbbk...','...bbbbbb...','..bbddddbb..','..bddwwddb..','..b......b..','...k....k...']
 };
 const CHEST_SP=[
   ['..yyyy..','.yooooy.','yowwwwoy','yowkkwoy','yowwwwoy','.yooooy.','..yyyy..','........'],
@@ -824,7 +839,7 @@ function pickAvatar(){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.onchange=()=>{
     const f=inp.files&&inp.files[0];if(!f)return;
-    if(f.size>2.5e6){toast('Файл слишком большой');return}
+    /* avatar size unlimited */
     const rd=new FileReader();
     rd.onload=()=>{
       const img=new Image();
@@ -834,7 +849,7 @@ function pickAvatar(){
         const sc=Math.max(sz/img.width,sz/img.height);
         const w=img.width*sc,h=img.height*sc;
         x.drawImage(img,(sz-w)/2,(sz-h)/2,w,h);
-        D.prof.avatar=c.toDataURL('image/jpeg',0.7);save();toast('Фото установлено');beep(700,.1);
+        D.prof.avatar=c.toDataURL('image/jpeg',0.92);save();toast('Фото установлено');beep(700,.1);
       };
       img.src=rd.result;
     };
@@ -887,47 +902,58 @@ function qolDailyCode(){
   codes[code]();D.codeDay=day;save();toast('Код принят: '+code);
 }
 function home(){
-  refreshRaidKeys();
-  if(D.banned){bg(0,0);tx('Аккаунт заблокирован',270,H/2,22,'#ff5a7a','center');return}
-  try{claimAdminGrants(true)}catch(e){}
-  bg(0,10);
-  try{if(SPR.bg_stars&&SPR.bg_stars.complete&&SPR.bg_stars.naturalWidth){g.globalAlpha=0.3;g.imageSmoothingEnabled=false;for(let yy=0;yy<H;yy+=256)for(let xx=0;xx<540;xx+=256)g.drawImage(SPR.bg_stars,xx,yy);g.globalAlpha=1}}catch(e){}
+  try{
+    if(typeof refreshRaidKeys==='function')refreshRaidKeys();
+    if(D&&D.banned){bg(0,0);tx('Аккаунт заблокирован',270,H/2,22,'#ff5a7a','center');return}
+    bg(0,8);
+    // top profile strip only (no title)
+    panel(70,14,400,54,'#2a5080');
+    drawAvatar(98,41,20);hit(70,14,56,54,()=>scr='profile');
+    tx((D.prof&&D.prof.name)||'Пилот',140,32,15);
+    tx('Ур.'+(D.lv||1)+'  ·  '+(D.coins|0)+'🪙  '+(D.gems|0)+'💎',140,52,12,'#ffd34a');
+    const O=window.POOnline,on=!!(O&&O.session);
+    g.fillStyle=on?'#3ad86a':'#556';g.beginPath();g.arc(450,41,7,0,7);g.fill();
+    hit(420,14,50,54,()=>scr='online');
 
-  // header
-  panel(16,12,508,72,'#4a7aff');
-  if(!drawSpr('ship',52,48,0.55))spr(SHIP,SPAL,52,48,2.5);
-  tx('PIXEL ORBIT',200,38,22,'#ffd34a','center');
-  tx('10 миров · 25 уровней',200,58,12,'#9ec9ff','center');
-  drawCoinIcon(360,36,1.15);tx(fmtN(D.coins),400,40,14,'#ffd34a','center');
-  drawGemIcon(440,36,1.15);tx(fmtN(D.gems),480,40,14,'#7fd0ff','center');
+    // LEFT column
+    btn(12,90,110,70,'Играть','#3a8aff',()=>scr='map',16);
+    btn(12,170,110,64,'Режимы','#ff8a3a',()=>scr='modes',15);
+    btn(12,244,110,64,'Герои','#3ad86a',()=>scr='chests',15);
+    btn(12,318,110,64,'Ивент','#c04aff',()=>scr='event',15);
+    btn(12,392,110,64,'Сезон','#ffd34a',()=>scr='season',15);
 
-  // profile row
-  panel(16,96,508,56,'#2a5080');
-  drawAvatar(48,124,22);hit(16,96,64,56,()=>scr='profile');
-  tx(D.prof.name||'Пилот',90,116,16);
-  tx('Ур.'+D.lv+' · XP '+(D.xp|0),90,136,12,'#ffd34a');
-  const O=window.POOnline,on=!!(O&&O.session);
-  if(!drawIcoSpr('online',500,124,0.9)){g.fillStyle=on?'#3ad86a':'#667';g.beginPath();g.arc(500,124,7,0,7);g.fill()}
-  hit(470,100,50,48,()=>scr='online');
+    // RIGHT column
+    btn(418,90,110,70,'Башня','#b070ff',()=>scr='tower',16);
+    btn(418,170,110,64,'Арена','#ff5a7a',()=>scr='arena',15);
+    btn(418,244,110,64,'Соц.','#5ad0ff',()=>scr='social',15);
+    btn(418,318,110,64,'Ещё','#6a7a9a',()=>scr='more',15);
+    btn(418,392,110,64,'Онлайн','#4a7aff',()=>scr='online',15);
 
-  // === FEWER BUTTONS ===
-  // 1 big play
-  bigCard(20,168,500,88,'play','ИГРАТЬ','Кампания · продолжить путь','#4a9aff',()=>scr='map');
+    // CENTER: ship preview with skin color
+    const sk=(D.shipSkins&&D.shipSkins.eq)||'default';
+    const skDef=SHIP_SKINS.find(x=>x.id===sk)||SHIP_SKINS[0];
+    const col=skDef.col||'#7fb7ff';
+    // big ship area
+    panel(140,100,260,320,'#1a3050');
+    if(!drawSpr('ship',270,240,1.6)){
+      // tinted fallback
+      spr(SHIP,Object.assign({},SPAL,{b:col,a:'#e0f0ff'}),270,240,7);
+    }else{
+      // color overlay hint
+      g.globalAlpha=0.15;g.fillStyle=col;g.fillRect(160,120,220,280);g.globalAlpha=1;
+    }
+    tx(skDef.name,270,400,14,'#cfe0ff','center');
+    btn(170,420,200,48,'Скин в магазине','#ffc030',()=>scr='shop',14);
 
-  // 2 modes row
-  medCard(20,270,160,78,'endless','Режимы','∞ Башня Арена','#ff8a3a',()=>scr='modes');
-  medCard(190,270,160,78,'chest','Герои','сундуки · слоты','#3ad86a',()=>scr='chests');
-  medCard(360,270,160,78,'event','Ивент','рейд · лавка','#c04aff',()=>scr='event');
-
-  // 3 social / progress
-  medCard(20,362,160,78,'season','Сезон','пропуск · Д-56','#ffd34a',()=>scr='season');
-  medCard(190,362,160,78,'clan','Социальное','клан · друзья','#5ad0ff',()=>scr='social');
-  medCard(360,362,160,78,'set','Ещё','база · магазин · …','#8a9aaa',()=>scr='more');
-
-  // bottom status only
-  panel(16,H-78,508,56,'#1a3050');
-  tx('🔑 '+(D.eventRaid&&D.eventRaid.keys|0)+'/3   ·   ✦ '+(D.eventCur|0)+'   ·   📦 '+(D.chests|0)+'   ·   серия '+(D.dailyBox&&D.dailyBox.streak||0),270,H-48,13,'#cfe0ff','center');
+    panel(12,H-64,516,48,'#1a3050');
+    tx('🔑'+(((D.eventRaid&&D.eventRaid.keys)|0))+'/3  ·  📦'+(D.chests|0)+'  ·  ✦'+(D.eventCur|0),270,H-38,13,'#cfe0ff','center');
+  }catch(e){
+    bg(0,4);tx('Ошибка меню',270,300,22,'#ff5a7a','center');
+    tx(String(e&&e.message||e).slice(0,60),270,340,14,'#ff8a9a','center');
+    btn(120,400,300,55,'Кампания','#4a7aff',()=>scr='map');
+  }
 }
+
 function bigCard(x,y,w,h,ico,title,sub,col,fn){
   rr(x,y,w,h,18);
   g.fillStyle='rgba(12,22,50,0.95)';g.fill();
@@ -951,50 +977,53 @@ function medCard(x,y,w,h,ico,title,sub,col,fn){
 }
 function modes(){
   bg(2,8);back();tx('Режимы',270,40,26,'#fff','center');
-  bigCard(30,120,480,80,'endless','Бесконечный','выживание без конца','#ff8a3a',()=>go(0,0,1));
-  bigCard(30,220,480,80,'tower','Башня','10 этажей · ежедневно','#b070ff',()=>scr='tower');
-  bigCard(30,320,480,80,'arena','Арена','5 жёстких волн','#ff5a7a',()=>scr='arena');
-  bigCard(30,420,480,80,'play','Кампания','10×25 уровней','#4a9aff',()=>scr='map');
+  btn(40,120,460,70,'Бесконечный','#ff8a3a',()=>go(0,0,1),20);
+  btn(40,210,460,70,'Башня','#b070ff',()=>scr='tower',20);
+  btn(40,300,460,70,'Арена','#ff5a7a',()=>scr='arena',20);
+  btn(40,390,460,70,'Кампания','#4a9aff',()=>scr='map',20);
 }
 function social(){
   bg(1,8);back();tx('Социальное',270,40,26,'#fff','center');
-  bigCard(30,120,480,80,'friend','Друзья / Онлайн','вход · заявки · профиль','#7fb7ff',()=>{const O=window.POOnline;scr=(O&&O.session)?'friends':'online'});
-  bigCard(30,220,480,80,'clan','Клан','код · рейд-босс','#5ad0ff',()=>scr='clan');
-  bigCard(30,320,480,80,'online','Рейд базы','атака по коду','#ff8a3a',()=>scr='baseRaid');
-  bigCard(30,420,480,80,'season','Топ недели','мировой босс','#ffd34a',()=>scr='weeklyBoss');
+  btn(40,120,460,70,'Друзья / Онлайн','#7fb7ff',()=>{const O=window.POOnline;scr=(O&&O.session)?'friends':'online'},18);
+  btn(40,210,460,70,'Клан','#5ad0ff',()=>scr='clan',20);
+  btn(40,300,460,70,'Рейд базы','#ff8a3a',()=>scr='baseRaid',20);
+  btn(40,390,460,70,'Топ недели','#ffd34a',()=>scr='weeklyBoss',20);
 }
 function more(){
   bg(3,8);back();tx('Ещё',270,40,26,'#fff','center');
-  bigCard(30,100,480,72,'shop','Магазин','монеты · гемы · навыки','#4a7aff',()=>scr='shop');
-  bigCard(30,186,480,72,'set','Модули','синергии оружия','#ff8a3a',()=>scr='modules');
-  bigCard(30,272,480,72,'tower','База / Королевство','здания острова','#6a8aff',()=>scr='station');
-  bigCard(30,358,480,72,'chest','Ежедневки','награды · серия','#ffc030',()=>scr='daily');
-  bigCard(30,444,480,72,'event','Музыка','свой плейлист','#b070ff',()=>scr='music');
-  bigCard(30,530,480,72,'set','Настройки','админ · промокод','#889',()=>scr='set');
+  btn(40,100,460,60,'Магазин','#4a7aff',()=>scr='shop',18);
+  btn(40,175,460,60,'Модули','#ff8a3a',()=>scr='modules',18);
+  btn(40,250,460,60,'База','#6a8aff',()=>scr='station',18);
+  btn(40,325,460,60,'Ежедневки','#ffc030',()=>scr='daily',18);
+  btn(40,400,460,60,'Музыка','#b070ff',()=>scr='music',18);
+  btn(40,475,460,60,'Настройки','#889',()=>scr='set',18);
 }
+
 function fmtN(n){n=n|0;return n>9999?(Math.floor(n/1000)+'k'):(''+n)}
 let hubNode=null;let stationZoom=1.15;
 const NP=()=>{
   const a=[];
-  // vertical scrollable path: 5 columns x 5 rows
   for(let i=0;i<STAGES_PER_WORLD;i++){
     const row=Math.floor(i/5),col=i%5;
-    const x=70+col*100+(row%2?20:0);
-    const y=140+row*95;
+    const x=70+col*100+(row%2?15:0);
+    const y=130+row*78;
     a.push([x,y]);
   }
   return a;
 };
+let mapScroll=0;
 function map(){
-  bg(wd%10,6);back();
-  panel(90,8,440,52,'#4a7aff');tx('Кампания · 10 миров × 25 ур.',270,32,16,'#fff','center');
+  bg(wd%15,6);back();
+  panel(90,8,440,52,'#4a7aff');tx('Кампания · 15 миров × 50 ур.',270,32,16,'#fff','center');
   panel(20,68,500,44,'#4a7aff');
   tx('◀',50,90,22,'#fff','center');tx('▶',490,90,22,'#fff','center');
-  tx('Мир '+(wd+1)+'/10: '+WN[wd],270,90,17,'#fff','center');
-  hit(20,68,100,44,()=>{wd=(wd+9)%10;sel=0});hit(420,68,100,44,()=>{wd=(wd+1)%10;sel=0});
+  tx('Мир '+(wd+1)+'/15: '+WN[wd],270,90,17,'#fff','center');
+  hit(20,68,100,44,()=>{wd=(wd+14)%15;sel=0});hit(420,68,100,44,()=>{wd=(wd+1)%15;sel=0});
 
   // path lines
-  const nodes=NP();
+  const nodes=NP().map(([x,y])=>[x,y-mapScroll]);
+  btn(20,H-70,120,44,'▲','#4a7aff',()=>{mapScroll=Math.max(0,mapScroll-120)},16);
+  btn(400,H-70,120,44,'▼','#4a7aff',()=>{mapScroll=Math.min(600,mapScroll+120)},16);
   g.strokeStyle='rgba(120,180,255,0.35)';g.lineWidth=3;
   for(let i=0;i<nodes.length-1;i++){
     g.beginPath();g.moveTo(nodes[i][0],nodes[i][1]);g.lineTo(nodes[i+1][0],nodes[i+1][1]);g.stroke();
@@ -1017,7 +1046,7 @@ function map(){
     g.restore();
     tx(''+(i+1),p[0],p[1]-2,isBoss?14:13,'#fff','center');
     if(st)tx('★'.repeat(st),p[0],p[1]+16,10,'#ffd34a','center');
-    if(ok)hit(p[0]-r,p[1]-r,r*2,r*2,()=>{sel=i;go(wd,i,0,0)});
+    if(ok&&p[1]>100&&p[1]<H-90)hit(p[0]-r,p[1]-r,r*2,r*2,()=>{sel=i;go(wd,i,0,0)});
   });
   // legend
   panel(20,H-70,500,50,'#2a4070');
@@ -1025,7 +1054,31 @@ function map(){
 }
 
 function shop(){
-  bg(1,6);back();tx('Магазин',270,40,28,'#fff','center');tx(''+D.coins+'  *'+D.gems,520,90,18,'#fff','right');
+  bg(1,6);back();tx('Магазин',270,36,24,'#fff','center');
+  drawCoinIcon(400,40,1);tx(''+(D.coins|0),430,44,14,'#ffd34a');
+  drawGemIcon(480,40,1);tx(''+(D.gems|0),505,44,14,'#7fd0ff');
+
+  tx('Скины корабля',30,78,13,'#ffd34a');
+  if(!D.shipSkins)D.shipSkins={owned:['default'],eq:'default'};
+  SHIP_SKINS.forEach((sk,i)=>{
+    const x=16+(i%4)*132,y=95+Math.floor(i/4)*68;
+    const owned=(D.shipSkins.owned||[]).includes(sk.id);
+    const eq=D.shipSkins.eq===sk.id;
+    panel(x,y,124,60,eq?'#3ad86a':(owned?'#4a7aff':'#2a3550'));
+    g.fillStyle=sk.col;g.beginPath();g.moveTo(x+22,y+30);g.lineTo(x+38,y+14);g.lineTo(x+38,y+46);g.closePath();g.fill();
+    tx(sk.name,x+78,y+24,11,'#fff','center');
+    if(eq)tx('надето',x+78,y+44,11,'#3ad86a','center');
+    else if(owned)hit(x,y,124,60,()=>{D.shipSkins.eq=sk.id;save();toast(sk.name)});
+    else{
+      tx(sk.price+'',x+78,y+44,11,'#ffd34a','center');
+      hit(x,y,124,60,()=>{
+        if((D.coins|0)<sk.price){toast('Мало монет');return}
+        D.coins-=sk.price;if(!D.shipSkins.owned.includes(sk.id))D.shipSkins.owned.push(sk.id);
+        D.shipSkins.eq=sk.id;save();toast('Куплено');
+      });
+    }
+  });
+
   const rows=[
     ['Урон','Ур.'+D.ud,60+D.ud*55,()=>D.ud++],
     ['Корпус','Ур.'+D.uh,60+D.uh*55,()=>D.uh++],
@@ -1034,14 +1087,19 @@ function shop(){
     ['Щит +3','x'+D.sk.s,65,()=>D.sk.s+=3],
     ['Бомба +2','x'+D.sk.b,90,()=>D.sk.b+=2]
   ];
+  tx('Улучшения',30,250,13,'#9ec9ff');
   rows.forEach((r,i)=>{
-    const y=115+i*90;
-    panel(20,y,500,78,'#4a7aff');tx(r[0],40,y+24,22);tx(r[1],40,y+52,16,'#9ec9ff');
-    btn(350,y+12,150,54,''+r[2],'#ffc030',()=>{if(D.coins>=r[2]){D.coins-=r[2];r[3]();save();beep(700,.1)}else toast('Не хватает монет')},18);
+    const y=270+i*58;
+    panel(20,y,500,52,'#4a7aff');
+    tx(r[0],40,y+20,16);tx(r[1],40,y+40,12,'#9ec9ff');
+    btn(360,y+8,140,36,''+r[2],'#ffc030',()=>{
+      if(D.coins<r[2]){toast('Мало монет');return}
+      D.coins-=r[2];r[3]();save();toast('Куплено');
+    },14);
   });
 }
 
-/* ===== CHESTS + CHARACTERS ===== */
+
 function openChest(premium){
   if(chestAnim)return;
   if(premium){
@@ -1083,7 +1141,7 @@ function chests(){
   for(let i=0;i<2;i++){
     const id=D.equip[i],c=id?CHARS.find(x=>x.id===id):null,x=30+i*255;
     panel(x,215,240,70,c?RARITY_COL[c.rarity]:'#334');
-    if(c&&CSPR[c.id])drawPix(CSPR[c.id],CPAL,x+36,250,3.5);
+    if(c){if(!(SPR[c.id]&&drawSpr(c.id,x+50,250,0.55))&&CSPR[c.id])drawPix(CSPR[c.id],CPAL,x+36,250,3.5);}
     if(c){tx(c.name,x+90,240,15);tx(ROLE_NAME[c.role]+' ★'+charStars(c.id),x+90,265,12,'#cfe0ff')}
     else tx('Нет героя',x+120,250,13,'#556','center');
     hit(x,215,240,70,()=>{if(c){D.equip[i]=null;save()}});
@@ -1102,7 +1160,7 @@ function chests(){
     panel(x,y,162,78,owned?RARITY_COL[ch.rarity]:'#222a44');
     if(owned){if(!(SPR[ch.id]&&drawSpr(ch.id,x+36,y+38,0.85))&&CSPR[ch.id])drawPix(CSPR[ch.id],CPAL,x+36,y+38,4)}
     else if(!owned){g.globalAlpha=.35;drawPix(CSPR[ch.id]||CSPR.spark,CPAL,x+36,y+38,4);g.globalAlpha=1}
-    tx(owned?ch.name:'???',x+95,y+28,12,owned?'#fff':'#556','center');
+    tx(owned?ch.name:(ch.id==='d56'?'Д-56':'???'),x+95,y+28,12,owned?'#fff':'#556','center');
     if(owned)tx('*'+charStars(ch.id),x+95,y+52,12,RARITY_COL[ch.rarity],'center');
     if(owned)hit(x,y,162,78,()=>{
       if(D.equip.includes(ch.id)){toast('Уже экип.');return}
@@ -1129,7 +1187,7 @@ function chests(){
         const alpha=k===0?1:0.35;
         g.globalAlpha=alpha;
         if(k===0&&t>2.0){
-          drawPix(CSPR[ch.id]||CSPR.spark,CPAL,270,yy,6);
+          if(!(SPR[ch.id]&&drawSpr(ch.id,270,yy,0.7)))drawPix(CSPR[ch.id]||CSPR.spark,CPAL,270,yy,6);
         }else{
           // silhouette black
           const map=CSPR[id]||CSPR.spark;
@@ -1644,51 +1702,85 @@ function grantReward(o){
   if(o.d56){D.chars['d56']=(D.chars['d56']||0)+1;toast('Получен Д-56!')}
 }
 
+
 function clanScreen(){
-  bg(1,6);back();tx('Клан / Эскадрилья',270,40,24,'#fff','center');
+  bg(1,6);back();tx('Клан',270,36,24,'#5ad0ff','center');
+  if(!D.clan)D.clan={code:'',name:'',role:'none',raidHp:200000,raidMax:200000,raidDmg:0,chat:[]};
   const c=D.clan;
   if(!c.code){
-    panel(40,120,460,200,'#4a7aff');
+    panel(40,120,460,180,'#4a7aff');
     tx('Ты не в клане',270,170,18,'#fff','center');
-    btn(90,220,360,55,'Создать клан (50G)','#ffc030',()=>{
+    btn(70,210,180,55,'Создать 50G','#ffc030',()=>{
       if(D.gems<50){toast('Нужно 50 гемов');return}
       D.gems-=50;
       const code='CL-'+Math.random().toString(36).slice(2,7).toUpperCase();
-      D.clan={code,name:'Клан '+code.slice(3),role:'leader',raidHp:200000,raidMax:200000,raidDmg:0};
-      save();toast('Клан создан: '+code);
-    },16);
-    btn(90,290,360,55,'Вступить по коду','#3ad86a',()=>{
-      const code=(prompt('Код клана CL-XXXXX')||'').trim().toUpperCase();
+      const name=(prompt('Имя клана')||('Клан '+code.slice(3))).slice(0,20);
+      D.clan={code,name,role:'leader',raidHp:200000,raidMax:200000,raidDmg:0,chat:[{t:Date.now(),n:'Система',m:'Клан создан'}]};
+      save();toast('Создан: '+code);
+    },14);
+    btn(280,210,180,55,'Вступить','#3ad86a',()=>{
+      const code=(prompt('Код CL-XXXXX')||'').trim().toUpperCase();
       if(!code)return;
-      D.clan={code,name:'Клан '+code.replace('CL-',''),role:'member',raidHp:200000,raidMax:200000,raidDmg:0};
-      save();toast('Вступили в '+code);
-    },16);
+      D.clan={code,name:'Клан '+code.replace('CL-',''),role:'member',raidHp:200000,raidMax:200000,raidDmg:0,chat:[]};
+      save();toast('Вступили');
+    },14);
     return;
   }
-  panel(30,90,480,120,'#4a7aff');
-  tx(c.name,270,120,22,'#ffd34a','center');
-  tx('Код: '+c.code+'  ·  '+c.role,270,155,14,'#cfe0ff','center');
-  tx('Скопируй код друзьям для вступления',270,185,12,'#9ec9ff','center');
-  // clan raid
-  panel(30,230,480,160,'#4a1030');
-  tx('Клановый рейд-босс',270,260,18,'#ff5a7a','center');
-  bar(60,290,420,20,Math.max(0,c.raidHp)/Math.max(1,c.raidMax),'#ff2a3a');
-  tx((c.raidHp|0).toLocaleString('ru-RU')+' / '+(c.raidMax|0).toLocaleString('ru-RU'),270,320,13,'#fff','center');
-  tx('Твой вклад: '+(c.raidDmg|0),270,345,13,'#9ec9ff','center');
-  btn(60,410,200,55,'Ударить','#ff3a5a',()=>{
+  panel(24,70,492,90,'#2a5080');
+  tx(c.name||'Клан',270,98,20,'#ffd34a','center');
+  tx(c.code+'  ·  '+c.role,270,128,13,'#cfe0ff','center');
+  btn(30,175,150,48,'Имя','#ffc030',()=>{
+    const n=(prompt('Новое имя клана',c.name)||'').trim().slice(0,20);
+    if(!n)return;c.name=n;save();toast('Имя: '+n);
+    // try supabase broadcast name
+    try{if(window.POOnline&&window.POOnline.clanSetName)window.POOnline.clanSetName(c.code,n)}catch(e){}
+  },14);
+  btn(195,175,150,48,'Рейд','#ff5a7a',()=>{
     refreshRaidKeys();
-    if((D.eventRaid.keys|0)<1){toast('Нужен ключ рейда');return}
+    if((D.eventRaid.keys|0)<1){toast('Нет ключей');return}
     D.eventRaid.keys--;
     const dmg=800+D.lv*40+Math.random()*400|0;
-    c.raidHp=Math.max(0,c.raidHp-dmg);c.raidDmg=(c.raidDmg|0)+dmg;
-    D.eventCur=(D.eventCur||0)+8;D.season.xp=(D.season.xp|0)+15;
-    if(c.raidHp<=0){D.gems+=25;D.chests=(D.chests||0)+2;c.raidMax=Math.floor(c.raidMax*1.25);c.raidHp=c.raidMax;c.raidDmg=0;toast('Клановый босс повержен!')}
-    else toast('Урон клану: '+dmg);
+    c.raidHp=Math.max(0,(c.raidHp|0)-dmg);c.raidDmg=(c.raidDmg|0)+dmg;
+    D.eventCur=(D.eventCur|0)+8;
+    if(c.raidHp<=0){D.gems+=25;D.chests=(D.chests|0)+2;c.raidMax=Math.floor(c.raidMax*1.25);c.raidHp=c.raidMax;c.raidDmg=0;toast('Босс клана повержен!')}
+    else toast('Урон '+dmg);
     save();
+  },14);
+  btn(360,175,150,48,'Выйти','#445',()=>{
+    if(confirm('Покинуть клан?')){D.clan={code:'',name:'',role:'none',raidHp:200000,raidMax:200000,raidDmg:0,chat:[]};save()}
+  },14);
+  // raid bar
+  bar(40,240,460,16,Math.max(0,c.raidHp)/Math.max(1,c.raidMax),'#ff2a3a');
+  tx('Рейд HP '+(c.raidHp|0).toLocaleString('ru-RU'),270,270,12,'#9ec9ff','center');
+  // chat
+  tx('Чат клана',30,300,14,'#ffd34a');
+  panel(24,315,492,280,'#1a2038');
+  if(!c.chat)c.chat=[];
+  const lines=c.chat.slice(-10);
+  lines.forEach((m,i)=>{
+    tx((m.n||'?')+': '+(m.m||''),40,340+i*26,12,'#cfe0ff');
+  });
+  btn(30,H-90,300,55,'Написать','#4a7aff',async()=>{
+    const msg=(prompt('Сообщение')||'').trim().slice(0,80);
+    if(!msg)return;
+    const entry={t:Date.now(),n:(D.prof&&D.prof.name)||'Пилот',m:msg};
+    c.chat.push(entry);if(c.chat.length>40)c.chat=c.chat.slice(-40);save();
+    try{
+      if(window.POOnline&&window.POOnline.clanChatSend){
+        const r=await window.POOnline.clanChatSend(c.code,entry);
+        if(!r.ok)toast(r.error||'Локально');
+      }else toast('Сохранено локально');
+    }catch(e){toast('Локальный чат')}
   },16);
-  btn(280,410,200,55,'Покинуть','#445',()=>{
-    if(confirm('Покинуть клан?')){D.clan={code:'',name:'',role:'none',raidHp:200000,raidMax:200000,raidDmg:0};save()}
-  },16);
+  btn(350,H-90,160,55,'Обновить','#6a8aff',async()=>{
+    try{
+      if(window.POOnline&&window.POOnline.clanChatLoad){
+        const r=await window.POOnline.clanChatLoad(c.code);
+        if(r.ok&&r.messages){c.chat=r.messages;save();toast('Чат обновлён')}
+        else toast(r.error||'Нет сервера');
+      }else toast('Нужен онлайн');
+    }catch(e){toast('Ошибка')}
+  },14);
 }
 
 function baseRaid(){
@@ -1749,6 +1841,8 @@ function weekId(){
 function musicScreen(){
   bg(2,6);back();tx('Плейлист',270,40,26,'#ffd34a','center');
   if(!D.playlist)D.playlist=[];
+if(!D.shipSkins)D.shipSkins={owned:['default'],eq:'default'};
+if(!D.shipSkins.owned)D.shipSkins={owned:['default'],eq:'default'};
   if(D.mus==null)D.mus=1;
   panel(30,80,480,60,'#4a7aff');
   tx(D.mus?'Музыка: ВКЛ':'Музыка: ВЫКЛ',160,110,16);
@@ -1947,6 +2041,9 @@ function friends(){
   bg(1,6);back();tx('Друзья',270,40,26,'#fff','center');
   const O=window.POOnline;
   if(!O||!O.session){tx('Войдите в онлайн',270,200,20,'#ff8a9a','center');btn(120,280,300,55,'К онлайн','#4a7aff',()=>scr='online');return}
+  // auto refresh once per open
+  if(!friends._loading){friends._loading=1;O.loadFriends().finally(()=>{friends._loading=0})}
+  tx('Твой код: '+((D.prof&&D.prof.uid)||'—'),270,70,14,'#ffd34a','center');
 
   btn(30,80,240,50,'По коду','#4a7aff',async()=>{
     const code=prompt('Код пилота (PO-XXXXXX)');if(!code)return;
@@ -1959,7 +2056,7 @@ function friends(){
     friendView=r.profile;scr='friendProfile';
   },16);
 
-  let y=150;
+  let y=95;
   const uid=O.session.user.id;
   const reqs=(O.requests||[]).filter(r=>r.status==='pending'&&r.receiver_id===uid);
   if(reqs.length){
@@ -2101,38 +2198,43 @@ function raid(){
 
 function tower(){
   bg(7,8);back();
-  // pixel tower stack
-  for(let i=0;i<8;i++){
-    const w=40+i*6;
-    g.fillStyle=i%2?'#5a6a9a':'#3a4a7a';
-    g.fillRect(270-w/2,520-i*48,w,46);
-    g.fillStyle='#ffd34a';g.fillRect(270-4,520-i*48+10,8,8);
-  }
-  g.fillStyle='#8a9acc';g.fillRect(250,100,40,40);
-  g.fillStyle='#ff5a7a';g.fillRect(262,88,16,16);
-  tx('Башня',270,40,28,'#fff','center');
-  // daily reset
+  if(!D.tower)D.tower={floor:0,best:0,day:''};
   const day=new Date().toDateString();
   if(D.tower.day!==day){D.tower.day=day;D.tower.floor=0;save()}
-  const fl=D.tower.floor||0,best=D.tower.best||0;
-  panel(40,100,460,200,'#b070ff');
-  tx('Ежедневная башня',270,130,20,'#fff','center');
-  tx('Этажи: одна жизнь · 10 этажей',270,160,14,'#e0b0ff','center');
-  tx('Текущий: '+fl+' / 10',270,200,22,'#ffd34a','center');
-  tx('Рекорд: '+best,270,235,16,'#9ec9ff','center');
-  const next=Math.min(10,fl+1);
-  if(fl>=10){
-    tx('Башня на сегодня пройдена!',270,320,18,'#3ad86a','center');
-    tx('Завтра этажи сбросятся',270,350,14,'#9ec9ff','center');
-  }else{
-    btn(90,300,360,70,'Этаж '+next,'#ff5a7a',()=>{
-      go(Math.min(9,next-1), next%5, 0, 0, null, next);
-    },22);
-    tx('Награда: монеты, гемы, на 5/10 — сундук',270,400,13,'#9ec9ff','center');
+  const cur=D.tower.floor|0, best=D.tower.best|0;
+  tx('Башня',270,36,22,'#e0b0ff','center');
+  tx('Сегодня: '+cur+'/10   Рекорд: '+best,270,60,13,'#9ec9ff','center');
+
+  // scrollable tower shaft
+  const baseY=H-100;
+  // draw 10 floors from bottom
+  for(let f=0;f<10;f++){
+    const fl=f+1;
+    const y=baseY-f*70;
+    const unlocked=fl<=cur+1;
+    const done=fl<=cur;
+    // floor block
+    g.fillStyle=done?'#3a2a60':(unlocked?'#2a1848':'#151028');
+    g.strokeStyle=done?'#b070ff':(unlocked?'#ff5a9a':'#334');
+    g.lineWidth=2;
+    g.fillRect(170,y-50,200,58);
+    g.strokeRect(170,y-50,200,58);
+    // windows
+    g.fillStyle=unlocked?'#ffd34a':'#445';
+    g.fillRect(190,y-35,16,16);g.fillRect(260,y-35,16,16);g.fillRect(330,y-35,16,16);
+    tx('Этаж '+fl,270,y-18,16,unlocked?'#fff':'#667','center');
+    if(done)tx('✓',360,y-18,16,'#3ad86a','center');
+    if(unlocked&&!done){
+      hit(170,y-50,200,58,()=>{
+        // start this floor
+        go(Math.min(14,fl-1), Math.min(STAGES_PER_WORLD-1,fl*2), 0, 0, null, fl);
+      });
+    }
   }
-  btn(90,450,360,55,'Тренировка','#6a8aff',()=>{
-    go(3,2,0,1,null,0);
-  },16);
+  // tip of tower
+  g.fillStyle='#c04aff';
+  g.beginPath();g.moveTo(270,baseY-10*70-40);g.lineTo(230,baseY-10*70+10);g.lineTo(310,baseY-10*70+10);g.closePath();g.fill();
+  tx('Тап по этажу',270,H-40,13,'#9ec9ff','center');
 }
 
 function modules(){
@@ -2196,29 +2298,33 @@ function prestige(){
       save();toast('Престиж '+D.prestige.level+'!');beep(900,.3);
     },20);
   }else{
-    tx('Нужно победить боссов всех 10 миров',270,380,15,'#ff8a9a','center');
+    tx('Нужно победить боссов всех 15 миров',270,380,15,'#ff8a9a','center');
   }
   btn(90,450,360,55,'К мирам','#4a7aff',()=>scr='map',18);
 }
 
 function set(){
-  bg(3,6);back();tx('Настройки',270,40,28,'#fff','center');
-  btn(90,100,360,55,'Плейлист / Музыка','#b070ff',()=>scr='music',18);
-  btn(90,165,360,55,'Админ-панель','#ff5a7a',()=>scr='admin',18);
-  btn(90,230,360,50,'Промокод','#ffc030',()=>qolDailyCode(),16);
-  btn(90,290,360,50,'Быстрый ремонт (+30% HP в бою)','#3ad86a',()=>{D.quickRepair=true;save();toast('В бою 1 раз +30% HP')},14);
-  btn(90,350,360,50,'Удвоить XP сезона (1 бой)','#b070ff',()=>{D.seasonBoost=true;save();toast('След. бой x2 season XP')},14);
-  btn(90,140,360,70,'Звук: '+(D.snd?'вкл':'выкл'),'#4a7aff',()=>{D.snd^=1;save()});
-  btn(90,230,360,70,'Музыка: '+(D.mus?'вкл':'выкл'),'#4a7aff',()=>{D.mus^=1;save()});
-  btn(90,320,360,60,'Онлайн','#4a7aff',()=>scr='online');
-  btn(90,395,360,60,'Сбросить прогресс','#ff5a7a',()=>{if(confirm('Стереть весь прогресс?')){localStorage.removeItem('po10');location.reload()}});
+  bg(3,6);back();tx('Настройки',270,40,26,'#fff','center');
+  let y=90;
+  btn(50,y,440,52,'Плейлист / Музыка','#b070ff',()=>scr='music',16);y+=62;
+  btn(50,y,440,52,'Звук: '+(D.snd?'вкл':'выкл'),'#4a7aff',()=>{D.snd^=1;save()},16);y+=62;
+  btn(50,y,440,52,'Музыка: '+(D.mus?'вкл':'выкл'),'#4a7aff',()=>{D.mus^=1;save()},16);y+=62;
+  btn(50,y,440,52,'Онлайн','#4a7aff',()=>scr='online',16);y+=62;
+  btn(50,y,440,52,'Промокод','#ffc030',()=>qolDailyCode(),16);y+=62;
+  btn(50,y,440,52,'Ремонт +30% HP (1 бой)','#3ad86a',()=>{D.quickRepair=true;save();toast('+30% HP в след. бою')},14);y+=62;
+  btn(50,y,440,52,'x2 XP сезона (1 бой)','#b070ff',()=>{D.seasonBoost=true;save();toast('x2 season XP')},14);y+=62;
+  if(D.admin||((D.prof&&D.prof.name)==='admin1')){
+    btn(50,y,440,52,'Админ-панель','#ff5a7a',()=>scr='admin',16);y+=62;
+  }
+  btn(50,y,440,52,'Сбросить прогресс','#ff5a7a',()=>{if(confirm('Стереть весь прогресс?')){localStorage.removeItem('po10');location.reload()}},16);
 }
+
 
 /* ===== BATTLE ===== */
 function go(w,s,endless,trial,eventMode,towerFloor){
   const cb=companionBonus();
   D.fenixUsed=false;
-  B={w,s,endless,trial,eventMode:eventMode||null,tower:towerFloor|0,boss:!endless&&!towerFloor&&((s===STAGES_PER_WORLD-1)||((s+1)%5===0)),wave:0,waves:towerFloor?1:(endless?999:((s===STAGES_PER_WORLD-1)?1:2+Math.min(4,(s/5|0)))),q:[],qt:0,diff:1+w*.4+s*.06+(trial?.55:0)+((eventMode&&eventMode.diff)?(eventMode.diff-1):0),rc:0,rg:0,over:0,pause:0,auto:0,wt:1,t:0,cb,stageBoss:(s===STAGES_PER_WORLD-1),miniBoss:((s+1)%5===0&&s!==STAGES_PER_WORLD-1)};
+  B={w,s,endless,trial,eventMode:eventMode||null,tower:towerFloor|0,boss:!endless&&!towerFloor&&((s===STAGES_PER_WORLD-1)||((s+1)%5===0)),wave:0,waves:towerFloor?1:(endless?999:((s===STAGES_PER_WORLD-1)?1:2+Math.min(4,(s/5|0)))),q:[],qt:0,diff:1.15+w*.42+s*.07+(trial?.55:0)+((eventMode&&eventMode.diff)?(eventMode.diff-1):0),rc:0,rg:0,over:0,pause:0,auto:0,wt:1,t:0,cb,stageBoss:(s===STAGES_PER_WORLD-1),miniBoss:((s+1)%5===0&&s!==STAGES_PER_WORLD-1)};
   const mh=Math.floor(((trial?55:100)+20*D.uh+bldLvl('dome')*20)*(1+cb.hp));
   P={x:270,y:H-220,hp:mh,mhp:mh,inv:0,fire:0,pw:1,dmg:10*(1+.18*D.ud)*(1+cb.dmg)};
   if(D.quickRepair){P.hp=Math.min(P.mhp,P.hp+P.mhp*0.3);D.quickRepair=false;save()}
@@ -2235,7 +2341,7 @@ function nextWave(){
   if(B.boss||(B.endless&&n%5==0)){
     const i=B.endless?(n/5|0)%10:B.w;const stageMul=1+((B.s||0)/STAGES_PER_WORLD)*1.2;const hp=(B.boss?(B.stageBoss?2800:1800)+B.w*150:1100+n*180)*B.diff*stageMul;
     en.push({boss:1,btype:i%10,x:270,y:-120,hp,mhp:hp,r:85,t:0,sc:1,col:WC[i%10]});B.bn=BN[i%10];B.btype=i%10;
-  }else{B.q=[];for(let i=0;i<5+n*2;i++)B.q.push({ty:Math.min(5,Math.random()*(1.2+n*.4+(B.s||0)*.05)|0),x:60+Math.random()*420})}
+  }else{B.q=[];const cnt=7+n*3+Math.min(12,(B.s||0)/5|0);for(let i=0;i<cnt;i++)B.q.push({ty:Math.min(5,Math.random()*(1.4+n*.45+(B.s||0)*.06)|0),x:60+Math.random()*420})}
 }
 const ab=(x,y,a,s)=>eb.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s});
 const aim=(x,y,s,o=0)=>ab(x,y,Math.atan2(P.y-y,P.x-x)+o,s);
@@ -2433,7 +2539,7 @@ function battle(){
     const ox=(i===0?-55:55)+Math.sin(T*2+i)*6,oy=-10+Math.cos(T*1.5+i)*4;
     if(SPR[ch.id]&&drawSpr(ch.id,P.x+ox,P.y+oy,0.9)){}else if(CSPR[ch.id])drawPix(CSPR[ch.id],CPAL,P.x+ox,P.y+oy,3.5);else{g.fillStyle=ch.col;g.fillRect(P.x+ox-8,P.y+oy-8,16,16)}
   });
-  if(P.hp>0){if(P.inv<=0||(B.t*20|0)%2){if(!drawSpr('ship',P.x,P.y,1.15))spr(SHIP,SPAL,P.x,P.y,5);const fl=5+Math.random()*7;g.fillStyle='#ffb04a';g.fillRect(P.x-10,P.y+30,5,fl);g.fillRect(P.x+5,P.y+30,5,fl)}
+  if(P.hp>0){if(P.inv<=0||(B.t*20|0)%2){(()=>{const sk=SHIP_SKINS.find(x=>x.id===((D.shipSkins&&D.shipSkins.eq)||'default'))||SHIP_SKINS[0];const pal=Object.assign({},SPAL,{b:sk.col,c:sk.col});if(!drawSpr('ship',P.x,P.y,1.15))spr(SHIP,pal,P.x,P.y,5)})();const fl=5+Math.random()*7;g.fillStyle='#ffb04a';g.fillRect(P.x-10,P.y+30,5,fl);g.fillRect(P.x+5,P.y+30,5,fl)}
   if(P.inv>.55){g.strokeStyle='#5affb0';g.lineWidth=3.5;g.shadowColor='#5affb0';g.shadowBlur=12;g.beginPath();g.arc(P.x,P.y,44,0,7);g.stroke();g.shadowBlur=0}}g.restore();
   panel(12,12,50,50,'#4a9aff');if(typeof drawIco==='function')drawIco('pause',37,37,4);else drawIcon2D('pause',37,37,1.2);hit(12,12,50,50,()=>{if(!B.over)B.pause=1});
   const be=en.find(e=>e.boss);if(be){tx(B.bn,70,24,16);bar(70,40,320,16,be.hp/be.mhp,'#ff2a3a');tx(Math.ceil(be.hp/be.mhp*100)+'%',230,49,12,'#fff','center');const tips=['Веер','Кристаллы','Спираль','Лёд','Порталы','Таран','Телепорт','Плазма','Притяжение','Гибрид'];tx(tips[be.btype|0]||'',400,24,13,'#9ec9ff')}
@@ -2449,7 +2555,7 @@ function battle(){
     const x=12+si*78,y=H-170;
     const cd=(B.skillCd&&B.skillCd[si])||0;
     panel(x,y,70,55,cd>0?'#445':'#c04aff');
-    if(CSPR[ch.id])drawPix(CSPR[ch.id],CPAL,x+35,y+22,2);
+    if(!(SPR[ch.id]&&drawSpr(ch.id,x+35,y+22,0.35))&&CSPR[ch.id])drawPix(CSPR[ch.id],CPAL,x+35,y+22,2);
     tx(cd>0?(''+Math.ceil(cd)):ch.skill.name.slice(0,4),x+35,y+44,11,'#fff','center');
     hit(x,y,70,55,()=>useCompanionSkill(si));
   }

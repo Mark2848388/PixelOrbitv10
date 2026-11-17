@@ -215,14 +215,24 @@
   }
 
   async function signOut() {
-
-    try { await db.auth.signOut(); } catch (e) {}
+    try { await db.auth.signOut({ scope: 'local' }); } catch (e) {}
+    try { await db.auth.signOut({ scope: 'global' }); } catch (e) {}
     session = null;
     raidState = null;
     friends = [];
     requests = [];
     leaderboard = [];
+    ownDamage = 0;
+    try {
+      localStorage.removeItem('po-auth-v1');
+      // clear supabase auth tokens that might linger
+      Object.keys(localStorage).forEach(k=>{
+        if(/^sb-.*-auth-token$/i.test(k) || k.indexOf('supabase.auth')>=0) localStorage.removeItem(k);
+      });
+    } catch (e) {}
     setStatus('offline', '');
+    notify();
+    return { ok: true };
   }
 
   async function loadLeaderboard() {

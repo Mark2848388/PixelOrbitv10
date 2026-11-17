@@ -34,14 +34,16 @@ function drawSpr(name,x,y,sc){
 /* ===== 10 WORLDS ===== */
 
 const SHIP_SKINS=[
-  {id:'default',name:'Классика',col:'#7fb7ff',price:0},
-  {id:'crimson',name:'Багровый',col:'#ff5a6a',price:200},
-  {id:'gold',name:'Золотой',col:'#ffd34a',price:350},
-  {id:'toxic',name:'Токсик',col:'#7dffb0',price:300},
-  {id:'void',name:'Войд',col:'#c04aff',price:400},
-  {id:'ice',name:'Лёд',col:'#8ad8ff',price:280},
-  {id:'neon',name:'Неон',col:'#ff5ad0',price:450},
-  {id:'shadow',name:'Тень',col:'#8899bb',price:500}
+  {id:'default',name:'Орбита',map:'classic',col:'#7fb7ff',price:0},
+  {id:'crimson',name:'Багровый Жнец',map:'fighter',col:'#ff3a4a',price:250},
+  {id:'void',name:'Теневой Рейдер',map:'stealth',col:'#9b4dff',price:400},
+  {id:'nova',name:'Нова-Протокол',map:'interceptor',col:'#ffd34a',price:450},
+  {id:'ice',name:'Ледяной Клинок',map:'blade',col:'#8ad8ff',price:350},
+  {id:'toxic',name:'Токсичный Рой',map:'swarm',col:'#5dff90',price:380},
+  {id:'neon',name:'Неоновый Призрак',map:'ghost',col:'#ff5ad0',price:500},
+  {id:'shadow',name:'Тень Бездны',map:'heavy',col:'#667799',price:550},
+  {id:'phoenix',name:'Феникс',map:'winged',col:'#ff7a30',price:600},
+  {id:'quantum',name:'Квантовый Скаут',map:'quantum',col:'#40ffe0',price:700}
 ];
 
 const STAGES_PER_WORLD=50;
@@ -52,38 +54,50 @@ const BN=['Мега-Уничтожитель','Кристальный Страж
 /* ===== EVENTS ===== */
 const EVENT_CYCLE_SEC = 3600; // 1 hour cycle
 
-const SEASON_DAYS=30;
+const SEASON_NAME='Начало Вселенной · 1 сезон';
+const SEASON_END=new Date('2026-12-01T23:59:59').getTime(); // до 1 декабря
+const SEASON_PREM_COST=600; // сильно дороже
 const SEASON_TIERS=[
-  {xp:0,free:{coins:50},prem:{gems:5}},
-  {xp:40,free:{coins:80},prem:{gems:5,chests:1}},
-  {xp:90,free:{coins:100},prem:{gems:8}},
-  {xp:150,free:{coins:120,chests:1},prem:{gems:10}},
-  {xp:220,free:{coins:150},prem:{gems:10,chests:1}},
-  {xp:300,free:{module:1},prem:{gems:15}},
-  {xp:400,free:{coins:200},prem:{gems:15,chests:1}},
-  {xp:520,free:{coins:250},prem:{gems:20}},
-  {xp:660,free:{chests:1},prem:{gems:20,hero:1}},
-  {xp:820,free:{coins:300},prem:{gems:25}},
-  {xp:1000,free:{coins:350},prem:{gems:25,chests:2}},
-  {xp:1200,free:{gems:5},prem:{gems:30}},
-  {xp:1450,free:{coins:400},prem:{gems:30,chests:1}},
-  {xp:1750,free:{coins:450},prem:{gems:35}},
-  {xp:2100,free:{chests:1},prem:{gems:40,hero:1}},
-  {xp:2500,free:{coins:500},prem:{gems:40}},
-  {xp:2950,free:{coins:550},prem:{gems:45,chests:2}},
-  {xp:3450,free:{gems:8},prem:{gems:50}},
-  {xp:4000,free:{coins:600},prem:{gems:50,chests:2}},
-  {xp:4600,free:{coins:700},prem:{gems:60,hero:1}},
-  {xp:5300,free:{chests:2},prem:{gems:70}},
-  {xp:6100,free:{coins:800},prem:{gems:80,chests:2}},
-  {xp:7000,free:{gems:10},prem:{gems:90}},
-  {xp:8000,free:{coins:1000},prem:{gems:100,chests:3}},
-  {xp:9200,free:{chests:2},prem:{gems:120,hero:1}},
-  {xp:10500,free:{coins:1200},prem:{gems:140}},
-  {xp:12000,free:{gems:15},prem:{gems:160,chests:3}},
-  {xp:13800,free:{coins:1500},prem:{gems:180}},
-  {xp:15800,free:{chests:3},prem:{gems:200,hero:1}},
-  {xp:18000,free:{coins:2000,gems:20,d56:1},prem:{gems:250,chests:5,d56:1}}
+  {xp:0,free:{coins:80},prem:{gems:10}},
+  {xp:50,free:{coins:100},prem:{gems:12,chests:1}},
+  {xp:120,free:{coins:130},prem:{gems:15}},
+  {xp:200,free:{coins:150,chests:1},prem:{gems:18}},
+  {xp:300,free:{coins:180},prem:{gems:20,chests:1}},
+  {xp:420,free:{module:1},prem:{gems:25}},
+  {xp:560,free:{coins:220},prem:{gems:28,chests:1}},
+  {xp:720,free:{coins:260},prem:{gems:32}},
+  {xp:900,free:{chests:1},prem:{gems:35,hero:1}},
+  {xp:1100,free:{coins:300},prem:{gems:40}},
+  {xp:1320,free:{coins:350},prem:{gems:45,chests:2}},
+  {xp:1560,free:{gems:8},prem:{gems:50}},
+  {xp:1820,free:{coins:400},prem:{gems:55,chests:1}},
+  {xp:2100,free:{coins:450},prem:{gems:60}},
+  {xp:2420,free:{chests:1},prem:{gems:65,hero:1}},
+  {xp:2780,free:{coins:500},prem:{gems:70}},
+  {xp:3180,free:{coins:550},prem:{gems:75,chests:2}},
+  {xp:3620,free:{gems:12},prem:{gems:85}},
+  {xp:4100,free:{coins:650},prem:{gems:90,chests:2}},
+  {xp:4620,free:{coins:750},prem:{gems:100,hero:1}},
+  {xp:5200,free:{chests:2},prem:{gems:110}},
+  {xp:5850,free:{coins:850},prem:{gems:120,chests:2}},
+  {xp:6550,free:{gems:15},prem:{gems:130}},
+  {xp:7300,free:{coins:1000},prem:{gems:140,chests:3}},
+  {xp:8100,free:{chests:2},prem:{gems:150,hero:1}},
+  {xp:9000,free:{coins:1200},prem:{gems:160}},
+  {xp:10000,free:{gems:20},prem:{gems:180,chests:3}},
+  {xp:11200,free:{coins:1500},prem:{gems:200}},
+  {xp:12500,free:{chests:3},prem:{gems:220,hero:1}},
+  {xp:14000,free:{coins:1800},prem:{gems:240,chests:3}},
+  {xp:15700,free:{gems:25},prem:{gems:260}},
+  {xp:17600,free:{coins:2200},prem:{gems:280,chests:4}},
+  {xp:19800,free:{chests:3},prem:{gems:300,hero:1}},
+  {xp:22200,free:{coins:2500},prem:{gems:320}},
+  {xp:25000,free:{gems:30,chests:2},prem:{gems:350,chests:4}},
+  {xp:28200,free:{coins:3000},prem:{gems:380,hero:1}},
+  {xp:31800,free:{chests:4},prem:{gems:420}},
+  {xp:36000,free:{coins:3500,gems:40},prem:{gems:450,chests:5}},
+  {xp:40800,free:{chests:4},prem:{gems:500,hero:1}},
+  {xp:46000,free:{coins:5000,gems:50,d56:1},prem:{gems:600,chests:6,d56:1}}
 ];
 const MODULE_SYNERGY=[
   {a:'m_dmg2',b:'m_fire2',bonus:{dmg:0.08,fire:0.08},name:'Скорострельный луч'},
@@ -447,6 +461,21 @@ for(const s of SP){const y=(s[1]+T*sp*s[2])%(H+20);g.fillStyle='rgba(200,220,255
 function spr(m,pal,cx,cy,z){const w=m[0].length*z,h=m.length*z;for(let j=0;j<m.length;j++)for(let i=0;i<m[j].length;i++){const k=m[j][i];if(k!='.'){g.fillStyle=pal[k];g.fillRect(Math.round(cx-w/2+i*z),Math.round(cy-h/2+j*z),z,z)}}}
 const SHIP=['......w......','......a......','.....aba.....','.....akb.....','....aakbb....','...caakbbc...','..ccaabbbcc..','.ccdabbbbdcc.','ccdd.bbb.ddcc','cdd..bbb..ddc','rd...bbb...dr','r....dbd....r','.....e.e.....'];
 const SPAL={w:'#fff',a:'#cfe8ff',b:'#7fb7ff',c:'#4a6fe0',d:'#2a3f93',k:'#5ff6ff',r:'#ff4a6a',e:'#ffb04a'};
+
+/* Pixel ship shapes (13x13-ish) — w=white a=light b=body c=dark k=cockpit r=red e=engine */
+const SHIP_MAPS={
+classic:['......w......','......a......','.....aba.....','.....akb.....','....aakbb....','...caakbbc...','..ccaabbbcc..','.ccdabbbbdcc.','ccdd.bbb.ddcc','cdd..bbb..ddc','rd...bbb...dr','r....dbd....r','.....e.e.....'],
+fighter:['......w......','.....aaa.....','....abkba....','...aabkbaa...','..caabbbaac..','.ccaabbbbaacc','ccdaabbbbaadc','cd..bbbbb..dc','r...bbbbb...r','r...dbbbd...r','....e.b.e....','.....e.e.....','......e......'],
+stealth:['.............','......a......','.....aba.....','....abkba....','...aabbbaa...','..caabbbaac..','.cdaabbbbadc.','cd..bbbbb..dc','r...b.b.b...r','....e...e....','.....e.e.....','.............','.............'],
+interceptor:['......w......','......a......','.....aka.....','....aakaa....','...caakaaac..','..ccaabaacc..','.ccdabbbadcc.','ccdd.bbb.ddcc','c.d..bbb..d.c','r....bbb....r','.....ebe.....','......e......','.............'],
+blade:['......w......','.....aaa.....','....abkba....','...aabbbaa...','..caab.baac..','.ccaab.baacc.','.cdaab.baadc.','cd..bbbbb..dc','r...bbbbb...r','....ebbbbe...','.....e.e.....','......e......','.............'],
+swarm:['.............','....a...a....','...aba.aba...','..abkbaabkba.','..aabbaabbaa.','..caabbaabac.','.ccdabbbbadcc','cd..bbbbb..dc','r...b.b.b...r','....e.b.e....','.....e.e.....','.............','.............'],
+ghost:['......w......','.....aaa.....','....a.k.a....','...aa.b.aa...','..caa.b.aac..','.ccaa.b.aacc.','.cdaab.baadc.','cd..b.b.b..dc','r....b.b....r','.....ebe.....','......e......','.............','.............'],
+heavy:['.....www.....','....aaaaa....','...aabkbaa...','..caabbbaac..','.ccaabbbbaacc','ccdaabbbbaadc','cddabbbbbaddc','cd.bbbbbbb.dc','r..bbbbbbb..r','r..ebbbbbe..r','....e.b.e....','.....e.e.....','......e......'],
+winged:['w...........w','aw....w....wa','.aa..aaa..aa.','.aab.aba.baa.','caabbakabbaac','ccaabbbbbaacc','cdaabbbbbaadc','cd.abbbbba.dc','r..bbbbbbb..r','...eb.b.be...','....e...e....','.....e.e.....','.............'],
+quantum:['......w......','.....aaa.....','....abkba....','...aab.baa...','..caab.baac..','.kcaab.baack.','ccdaab.baadc.','cd..bbbbb..dc','r..k.bbb.k..r','....ebbbbe...','.....e.e.....','......e......','.............']
+};
+
 const EM=[
 ['..a.a..','.ababa.','abkbkba','.abkba.','..aba..','...b...','..r.r..'],
 ['.a...a.','aab.baa','abbbbba','.bkkkb.','..bbb..','..b.b..','..r.r..'],
@@ -574,54 +603,53 @@ function currencyPill(x,y,ico,v){
 
 
 
-function drawShipR(x,y,col){
-  g.save();g.translate(x,y);
-  const c=col||'#6ec8ff';
-  // engine trail
-  g.globalAlpha=0.35+Math.sin(T*12)*0.15;
-  const trail=g.createLinearGradient(0,20,0,55);
-  trail.addColorStop(0,'#ff9a40');trail.addColorStop(1,'rgba(255,80,0,0)');
-  g.fillStyle=trail;g.beginPath();g.moveTo(-10,18);g.lineTo(0,55);g.lineTo(10,18);g.closePath();g.fill();
+function drawPlayerShip(x,y,skin,sc){
+  sc=sc||1;
+  const sk=skin||SHIP_SKINS[0];
+  const mapName=sk.map||'classic';
+  const grid=SHIP_MAPS[mapName]||SHIP_MAPS.classic||SHIP;
+  const z=Math.max(2,Math.round(5*sc));
+  const col=sk.col||'#7fb7ff';
+  // build palette from skin color
+  const pal=Object.assign({},SPAL,{
+    b:col,
+    a:tintHex(col,0.35),
+    c:tintHex(col,-0.35),
+    d:tintHex(col,-0.55),
+    k:'#5ff6ff',
+    e:sk.eng||'#ffb04a',
+    r:'#ff4a6a',
+    w:'#ffffff'
+  });
+  // soft glow
+  g.save();
+  g.shadowColor=col;g.shadowBlur=8*sc;
+  spr(grid,pal,x,y,z);
+  g.shadowBlur=0;
+  // engine flame flicker
+  const fl=3+Math.random()*5;
+  g.globalAlpha=0.85;
+  g.fillStyle=pal.e||'#ffb04a';
+  g.fillRect(x-z*2,y+z*5,z,fl);
+  g.fillRect(x+z,y+z*5,z,fl);
   g.globalAlpha=1;
-  // shadow under
-  g.fillStyle='rgba(0,0,0,0.25)';g.beginPath();g.ellipse(0,34,22,6,0,0,7);g.fill();
-  // main hull
-  g.shadowColor=c;g.shadowBlur=20;
-  const hull=g.createLinearGradient(-20,0,20,0);
-  hull.addColorStop(0,'#1a3a70');hull.addColorStop(0.5,c);hull.addColorStop(1,'#1a3a70');
-  g.fillStyle=hull;
-  g.beginPath();
-  g.moveTo(0,-36);g.bezierCurveTo(14,-28,20,-10,18,8);
-  g.lineTo(12,26);g.lineTo(0,32);g.lineTo(-12,26);g.lineTo(-18,8);
-  g.bezierCurveTo(-20,-10,-14,-28,0,-36);g.closePath();g.fill();
-  g.shadowBlur=0;
-  // armor lines
-  g.strokeStyle='rgba(255,255,255,0.25)';g.lineWidth=1.5;
-  g.beginPath();g.moveTo(0,-30);g.lineTo(0,24);g.stroke();
-  // cockpit glass
-  const glass=g.createRadialGradient(-2,-12,1,0,-8,12);
-  glass.addColorStop(0,'#ffffff');glass.addColorStop(0.4,'#a8f0ff');glass.addColorStop(1,'#2080c0');
-  g.fillStyle=glass;g.beginPath();g.ellipse(0,-10,9,13,0,0,7);g.fill();
-  g.strokeStyle='rgba(255,255,255,0.5)';g.lineWidth=1;g.stroke();
-  // wings
-  const wing=g.createLinearGradient(0,0,40,10);
-  wing.addColorStop(0,c);wing.addColorStop(1,'#0a2048');
-  g.fillStyle=wing;
-  g.beginPath();g.moveTo(10,0);g.lineTo(42,22);g.lineTo(38,28);g.lineTo(12,16);g.closePath();g.fill();
-  g.beginPath();g.moveTo(-10,0);g.lineTo(-42,22);g.lineTo(-38,28);g.lineTo(-12,16);g.closePath();g.fill();
-  // wing glow edge
-  g.strokeStyle='rgba(180,230,255,0.4)';g.lineWidth=1;
-  g.beginPath();g.moveTo(10,0);g.lineTo(42,22);g.stroke();
-  g.beginPath();g.moveTo(-10,0);g.lineTo(-42,22);g.stroke();
-  // engines
-  g.shadowColor='#ff5500';g.shadowBlur=16;
-  const eng=g.createRadialGradient(0,0,1,0,0,8);
-  eng.addColorStop(0,'#fff');eng.addColorStop(0.4,'#ffd080');eng.addColorStop(1,'#ff4020');
-  g.fillStyle=eng;
-  g.beginPath();g.ellipse(-8,28,6,10,0,0,7);g.fill();
-  g.beginPath();g.ellipse(8,28,6,10,0,0,7);g.fill();
-  g.shadowBlur=0;
   g.restore();
+}
+function tintHex(hex,amt){
+  try{
+    let h=(hex||'#7fb7ff').replace('#','');
+    if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    let r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+    r=Math.max(0,Math.min(255,r+(amt>0?Math.floor((255-r)*amt):Math.floor(r*amt))));
+    g=Math.max(0,Math.min(255,g+(amt>0?Math.floor((255-g)*amt):Math.floor(g*amt))));
+    b=Math.max(0,Math.min(255,b+(amt>0?Math.floor((255-b)*amt):Math.floor(b*amt))));
+    return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+  }catch(e){return hex||'#7fb7ff'}
+}
+// legacy alias
+function drawShipR(x,y,col){
+  const sk=SHIP_SKINS.find(s=>s.col===col)||SHIP_SKINS[0];
+  drawPlayerShip(x,y,Object.assign({},sk,{col:col||sk.col}),1);
 }
 function drawEnemyR(x,y,ty,col,t){
   g.save();g.translate(x,y);const c=col||'#ff6a5a';const tt=t||0;
@@ -897,7 +925,7 @@ function qolDailyCode(){
   const day=new Date().toDateString();
   if(D.codeDay===day){toast('Код уже введён сегодня');return}
   const code=(prompt('Промокод')||'').trim().toUpperCase();
-  const codes={ORBIT:()=>{D.coins+=500;D.gems+=10},PIXEL:()=>{D.chests=(D.chests||0)+3},D56:()=>{D.chars.d56=(D.chars.d56||0)+1},SEASON:()=>{D.season.xp=(D.season.xp||0)+500},RAID:()=>{refreshRaidKeys();D.eventRaid.keys=3}};
+  const codes={ORBIT:()=>{D.coins+=500;D.gems+=10},PIXEL:()=>{D.chests=(D.chests||0)+3},D56:()=>{D.chars.d56=(D.chars.d56||0)+1},SEASON:()=>{D.season.xp=(D.season.xp||0)+500},RAID:()=>{refreshRaidKeys();D.eventRaid.keys=3},UNIVERSE:()=>{D.season.xp=(D.season.xp||0)+2000;D.gems+=50},SKINS:()=>{if(!D.shipSkins)D.shipSkins={owned:['default'],eq:'default'};SHIP_SKINS.forEach(sk=>{if(!D.shipSkins.owned.includes(sk.id))D.shipSkins.owned.push(sk.id)})},START:()=>{D.coins+=2000;D.gems+=100;D.chests=(D.chests||0)+5}};
   if(!codes[code]){toast('Неверный код');return}
   codes[code]();D.codeDay=day;save();toast('Код принят: '+code);
 }
@@ -929,19 +957,11 @@ function home(){
     btn(418,318,110,64,'Ещё','#6a7a9a',()=>scr='more',15);
     btn(418,392,110,64,'Онлайн','#4a7aff',()=>scr='online',15);
 
-    // CENTER: ship preview with skin color
+    // CENTER: ship preview with real skin shape
     const sk=(D.shipSkins&&D.shipSkins.eq)||'default';
     const skDef=SHIP_SKINS.find(x=>x.id===sk)||SHIP_SKINS[0];
-    const col=skDef.col||'#7fb7ff';
-    // big ship area
     panel(140,100,260,320,'#1a3050');
-    if(!drawSpr('ship',270,240,1.6)){
-      // tinted fallback
-      spr(SHIP,Object.assign({},SPAL,{b:col,a:'#e0f0ff'}),270,240,7);
-    }else{
-      // color overlay hint
-      g.globalAlpha=0.15;g.fillStyle=col;g.fillRect(160,120,220,280);g.globalAlpha=1;
-    }
+    drawPlayerShip(270,240,skDef,1.55);
     tx(skDef.name,270,400,14,'#cfe0ff','center');
     btn(170,420,200,48,'Скин в магазине','#ffc030',()=>scr='shop',14);
 
@@ -1065,8 +1085,8 @@ function shop(){
     const owned=(D.shipSkins.owned||[]).includes(sk.id);
     const eq=D.shipSkins.eq===sk.id;
     panel(x,y,124,60,eq?'#3ad86a':(owned?'#4a7aff':'#2a3550'));
-    g.fillStyle=sk.col;g.beginPath();g.moveTo(x+22,y+30);g.lineTo(x+38,y+14);g.lineTo(x+38,y+46);g.closePath();g.fill();
-    tx(sk.name,x+78,y+24,11,'#fff','center');
+    drawPlayerShip(x+28,y+32,sk,0.42);
+    tx(sk.name,x+82,y+24,10,'#fff','center');
     if(eq)tx('надето',x+78,y+44,11,'#3ad86a','center');
     else if(owned)hit(x,y,124,60,()=>{D.shipSkins.eq=sk.id;save();toast(sk.name)});
     else{
@@ -1605,81 +1625,97 @@ function arena(){
 
 function seasonPass(){
   bg(3,5);back();
-  panel(80,12,380,50,'#ffd34a','rgba(20,30,60,.9)');
-  tx('БОЕВОЙ ПРОПУСК',270,38,22,'#1a1040','center');
+  // header
+  panel(20,8,500,58,'#1a1040');
+  tx(SEASON_NAME,270,28,16,'#ffd34a','center');
   if(!D.season)D.season={id:1,xp:0,prem:false,claimedFree:{},claimedPrem:{},start:Date.now()};
-  if(!D.season.start)D.season.start=Date.now();
   if(!D.season.claimedFree)D.season.claimedFree={};
   if(!D.season.claimedPrem)D.season.claimedPrem={};
-  if(typeof window._ss!=='number')window._ss=0;
-
-  const left=Math.max(0,SEASON_DAYS*864e5-(Date.now()-D.season.start));
-  const days=left/864e5|0,hrs=(left%864e5)/36e5|0;
+  // force end date
+  const left=Math.max(0,SEASON_END-Date.now());
+  const days=left/864e5|0,hrs=(left%864e5)/36e5|0,mins=(left%36e5)/6e4|0;
   let cur=0;
   for(let i=0;i<SEASON_TIERS.length;i++)if((D.season.xp|0)>=SEASON_TIERS[i].xp)cur=i;
   const nextXp=SEASON_TIERS[Math.min(SEASON_TIERS.length-1,cur+(cur<SEASON_TIERS.length-1?1:0))].xp;
   const prevXp=SEASON_TIERS[cur].xp;
   const prog=nextXp>prevXp?Math.min(1,((D.season.xp|0)-prevXp)/(nextXp-prevXp)):1;
 
-  panel(20,70,500,78,'#4a7aff');
-  tx('Сезон #'+(D.season.id||1)+' · '+days+'д '+hrs+'ч',30,92,13,'#cfe0ff');
-  tx('Ур. '+(cur+1)+' / 30   XP '+(D.season.xp|0),30,120,15,'#ffd34a');
-  bar(200,112,180,14,prog,'#ffd34a');
+  // top status bar
+  panel(20,72,500,62,'#2a3a60');
+  tx('Ур. '+(cur+1)+' / '+SEASON_TIERS.length+'   ·   XP '+(D.season.xp|0),30,92,14,'#ffd34a');
+  bar(30,108,280,12,prog,'#ffd34a');
+  tx(days+'д '+hrs+'ч '+mins+'м',420,92,13,'#cfe0ff','center');
   if(!D.season.prem){
-    btn(390,82,120,50,'PREMIUM\n80G','#b070ff',()=>{
-      if(D.gems<80){toast('Нужно 80 гемов');return}
-      D.gems-=80;D.season.prem=true;save();toast('Premium!');
-    },13);
-  }else{panel(390,82,120,50,'#3ad86a');tx('PREMIUM',450,107,14,'#fff','center')}
+    btn(320,100,190,28,'PREMIUM  '+SEASON_PREM_COST+'💎','#b070ff',()=>{
+      if(D.gems<SEASON_PREM_COST){toast('Нужно '+SEASON_PREM_COST+' гемов');return}
+      D.gems-=SEASON_PREM_COST;D.season.prem=true;save();toast('Premium активирован!');
+    },12);
+  }else{
+    panel(320,100,190,28,'#3ad86a');tx('★ PREMIUM',415,114,13,'#fff','center');
+  }
 
-  // scroll controls — big hit areas
-  const maxScroll=Math.max(0,(SEASON_TIERS.length-4)*100);
-  btn(20,160,100,44,'◄ Назад','#6a8aff',()=>{window._ss=Math.max(0,window._ss-100)},14);
-  btn(130,160,100,44,'Вперёд ►','#6a8aff',()=>{window._ss=Math.min(maxScroll,window._ss+100)},14);
-  btn(240,160,120,44,'К уровню','#ffc030',()=>{window._ss=Math.min(maxScroll,Math.max(0,cur*100-100))},13);
-  tx('Стр. уровни '+(1+Math.floor(window._ss/100))+'+',420,182,12,'#9ec9ff','center');
+  // swipe state
+  if(typeof window._ss!=='number')window._ss=Math.max(0,cur*118-118);
+  if(typeof window._ssDrag!=='number')window._ssDrag=0;
+  if(typeof window._ssStartX!=='number')window._ssStartX=0;
+  if(typeof window._ssStartScroll!=='number')window._ssStartScroll=0;
+  const cardW=118, gap=8, visible=4;
+  const maxScroll=Math.max(0,(SEASON_TIERS.length-visible)*(cardW+gap));
+  window._ss=Math.max(0,Math.min(maxScroll,window._ss));
 
-  // 4 visible cards
-  const start=Math.floor(window._ss/100);
-  for(let k=0;k<4;k++){
-    const i=start+k;
-    if(i>=SEASON_TIERS.length)break;
+  // track background
+  panel(12,148,516,320,'#121828');
+  // free / prem labels
+  tx('FREE',40,168,12,'#9ec9ff');
+  tx('PREM',40,318,12,'#e0b0ff');
+
+  // clip and draw cards
+  g.save();
+  g.beginPath();g.rect(20,155,500,305);g.clip();
+  const startX=24-window._ss;
+  for(let i=0;i<SEASON_TIERS.length;i++){
     const t=SEASON_TIERS[i];
     const unlocked=(D.season.xp|0)>=t.xp;
-    const x=20+k*130;
-    // level header
-    panel(x,215,122,36,i===cur?'#ffd34a':(unlocked?'#4a7aff':'#334'));
-    tx('Ур.'+(i+1),x+61,233,15,i===cur?'#1a1040':'#fff','center');
-    // free
-    panel(x,255,122,100,unlocked?'#2a5080':'#1a2030');
-    tx('FREE',x+61,272,11,'#9ec9ff','center');
-    tx(rewardLabel(t.free),x+61,295,12,unlocked?'#fff':'#556','center');
-    if(t.free&&t.free.d56)tx('Д-56',x+61,315,13,'#7fd0ff','center');
+    const x=startX+i*(cardW+gap);
+    if(x+cardW<10||x>540)continue;
+    // level badge
+    const isCur=i===cur;
+    panel(x,160,cardW,36,isCur?'#ffd34a':(unlocked?'#4a7aff':'#2a3048'));
+    tx((i+1)+'',x+cardW/2,178,15,isCur?'#1a1040':'#fff','center');
+    // free track
+    panel(x,202,cardW,100,unlocked?'#1e3a5a':'#151c28');
+    tx(rewardLabel(t.free),x+cardW/2,235,12,unlocked?'#fff':'#556','center');
+    if(t.free&&t.free.d56)tx('Д-56',x+cardW/2,255,12,'#7fd0ff','center');
     if(unlocked&&!D.season.claimedFree[i]){
-      btn(x+8,330,106,22,'Забрать','#3ad86a',((ii)=>{return()=>{
-        grantReward(SEASON_TIERS[ii].free);D.season.claimedFree[ii]=1;save();toast('Забрано Free ур.'+(ii+1));
-      }})(i),12);
-    }else if(D.season.claimedFree[i])tx('✓',x+61,340,14,'#3ad86a','center');
-    else if(!unlocked)tx('🔒',x+61,340,12,'#556','center');
-    // premium
-    panel(x,365,122,110,unlocked&&D.season.prem?'#5a3080':'#2a2040');
-    tx('PREM',x+61,382,11,'#e0b0ff','center');
-    tx(rewardLabel(t.prem),x+61,405,12,unlocked?'#e0b0ff':'#556','center');
-    if(t.prem&&t.prem.d56)tx('Д-56',x+61,425,13,'#7fd0ff','center');
+      btn(x+8,275,cardW-16,22,'Забрать','#3ad86a',((ii)=>()=>{
+        grantReward(SEASON_TIERS[ii].free);D.season.claimedFree[ii]=1;save();toast('Free ур.'+(ii+1));
+      })(i),11);
+    }else if(D.season.claimedFree[i])tx('✓',x+cardW/2,285,14,'#3ad86a','center');
+    else if(!unlocked)tx('🔒',x+cardW/2,285,13,'#445','center');
+    // premium track
+    panel(x,312,cardW,110,unlocked&&D.season.prem?'#4a2060':'#1a1528');
+    tx(rewardLabel(t.prem),x+cardW/2,345,12,unlocked?'#e0b0ff':'#556','center');
+    if(t.prem&&t.prem.d56)tx('Д-56',x+cardW/2,365,12,'#7fd0ff','center');
     if(unlocked&&D.season.prem&&!D.season.claimedPrem[i]){
-      btn(x+8,445,106,22,'Забрать','#ffc030',((ii)=>{return()=>{
-        grantReward(SEASON_TIERS[ii].prem);D.season.claimedPrem[ii]=1;save();toast('Забрано Prem ур.'+(ii+1));
-      }})(i),12);
-    }else if(D.season.claimedPrem[i])tx('✓',x+61,455,14,'#3ad86a','center');
-    else if(!D.season.prem)tx('premium',x+61,455,11,'#556','center');
-    else if(!unlocked)tx('🔒',x+61,455,12,'#556','center');
+      btn(x+8,385,cardW-16,22,'Забрать','#ffc030',((ii)=>()=>{
+        grantReward(SEASON_TIERS[ii].prem);D.season.claimedPrem[ii]=1;save();toast('Prem ур.'+(ii+1));
+      })(i),11);
+    }else if(D.season.claimedPrem[i])tx('✓',x+cardW/2,400,14,'#3ad86a','center');
+    else if(!D.season.prem)tx('premium',x+cardW/2,400,11,'#556','center');
+    else if(!unlocked)tx('🔒',x+cardW/2,400,13,'#445','center');
   }
-  btn(20,H-70,240,48,'Забрать все Free','#3ad86a',()=>{
-    let n=0;SEASON_TIERS.forEach((t,i)=>{if((D.season.xp|0)>=t.xp&&!D.season.claimedFree[i]){grantReward(t.free);D.season.claimedFree[i]=1;n++}});
+  g.restore();
+
+  // swipe hint + nav
+  tx('← свайп →',270,470,12,'#6a7a9a','center');
+  btn(20,H-62,160,48,'К уровню','#ffc030',()=>{window._ss=Math.max(0,Math.min(maxScroll,cur*(cardW+gap)-(cardW+gap)));},14);
+  btn(190,H-62,160,48,'Забрать всё','#3ad86a',()=>{
+    let n=0;
+    SEASON_TIERS.forEach((t,i)=>{if((D.season.xp|0)>=t.xp&&!D.season.claimedFree[i]){grantReward(t.free);D.season.claimedFree[i]=1;n++}});
     if(D.season.prem)SEASON_TIERS.forEach((t,i)=>{if((D.season.xp|0)>=t.xp&&!D.season.claimedPrem[i]){grantReward(t.prem);D.season.claimedPrem[i]=1;n++}});
     save();toast(n?('Забрано: '+n):'Нечего');
   },14);
-  tx('30 ур. · Д-56 на 30',400,H-46,12,'#9ec9ff','center');
+  btn(360,H-62,160,48,'В конец','#6a8aff',()=>{window._ss=maxScroll},14);
 }
 function rewardLabel(o){
   if(!o)return'—';
@@ -1901,22 +1937,22 @@ function stopUserMusic(){
 }
 
 
-const ADMIN_EMAIL='admin1@po.game';
+const ADMIN_EMAIL='ockasovmark5@gmail.com';
 const ADMIN_PASS='mark156';
 function isAdmin(){
   const O=window.POOnline;
-  if(D&&D.admin)return true;
   if(O&&O.session&&O.session.user){
     const e=(O.session.user.email||'').toLowerCase();
-    if(e===ADMIN_EMAIL||e.startsWith('admin1'))return true;
+    if(e===ADMIN_EMAIL.toLowerCase())return true;
   }
-  return !!(D&&D.admin);
+  // локальный флаг только после входа по паролю mark156 (см. Настройки)
+  return !!(D&&D.admin===true);
 }
 function adminPanel(){
   bg(0,6);back();tx('Админ-панель',270,36,26,'#ff5a7a','center');
   if(!isAdmin()){
     tx('Нет доступа',270,200,20,'#ff8a9a','center');
-    btn(90,280,360,55,'Вход admin1 / mark156','#b070ff',async()=>{
+    btn(90,280,360,55,'Вход ockasovmark5 / mark156','#b070ff',async()=>{
       const O=window.POOnline;
       if(O&&O.signInEmail){
         let r=await O.signInEmail(ADMIN_EMAIL,ADMIN_PASS,false);
@@ -1940,15 +1976,19 @@ function adminPanel(){
     ['+10K монет',()=>{D.coins+=10000}],
     ['+500 гемов',()=>{D.gems+=500}],
     ['+20 сундуков',()=>{D.chests=(D.chests||0)+20}],
-    ['+5000 season XP',()=>{D.season.xp=(D.season.xp||0)+5000}],
-    ['Макс сезон XP',()=>{D.season.xp=20000}],
+    ['+5K season XP',()=>{D.season.xp=(D.season.xp||0)+5000}],
+    ['Макс сезон XP',()=>{D.season.xp=999999}],
     ['Premium сезон',()=>{D.season.prem=true}],
     ['Все модули',()=>{MODULES.forEach(m=>D.modules.owned[m.id]=1)}],
-    ['Все герои',()=>{CHARS.forEach(c=>D.chars[c.id]=(D.chars[c.id]||0)+5)}],
+    ['Все герои x5',()=>{CHARS.forEach(c=>D.chars[c.id]=(D.chars[c.id]||0)+5)}],
     ['Д-56 +5',()=>{D.chars.d56=(D.chars.d56||0)+5}],
     ['Ключи x3',()=>{refreshRaidKeys();D.eventRaid.keys=3}],
     ['+200 ивент$',()=>{D.eventCur=(D.eventCur||0)+200}],
     ['Ур. 50',()=>{D.lv=50;D.xp=0}],
+    ['Все скины корабля',()=>{SHIP_SKINS.forEach(sk=>{if(!D.shipSkins.owned.includes(sk.id))D.shipSkins.owned.push(sk.id)})}],
+    ['Урон/HP +10',()=>{D.ud+=10;D.uh+=10}],
+    ['Открыть все миры',()=>{for(let w=0;w<15;w++)for(let st=0;st<STAGES_PER_WORLD;st++)D.prog[w+'_'+st]=3}],
+    ['Сброс сезона claims',()=>{D.season.claimedFree={};D.season.claimedPrem={}}],
   ];
   gifts.forEach((g,i)=>{
     const x=30+(i%2)*250,y=100+Math.floor(i/2)*52;
@@ -2033,7 +2073,7 @@ function online(){
     chipBtn(280,286,220,52,'⬆','Счёт','#3ad86a',async()=>{const r=await O.submitScore();toast(r.ok?(''+r.score):(r.error||'?'))});
     chipBtn(40,352,220,52,'⚡','Дуэль','#c04aff',()=>{const c=prompt('Код');if(!c)return;go(5,4,0,1,{id:'duel',diff:1.35,coinMul:2.5})});
     chipBtn(280,352,220,52,'↻','Синхрон','#6a8aff',async()=>{await O.refresh();toast('OK')});
-    cardBtn(40,430,460,56,'⎋','Выйти','сменить аккаунт','#445',async()=>{await O.signOut();toast('Вышли')});
+    cardBtn(40,430,460,56,'⎋','Выйти','сменить аккаунт','#445',async()=>{try{await O.signOut()}catch(e){}try{localStorage.removeItem('po-auth-v1');localStorage.removeItem('po-guest-cred')}catch(e){}toast('Вышли');setTimeout(()=>{scr='online'},100)});
   }
 }
 
@@ -2305,18 +2345,40 @@ function prestige(){
 
 function set(){
   bg(3,6);back();tx('Настройки',270,40,26,'#fff','center');
-  let y=90;
-  btn(50,y,440,52,'Плейлист / Музыка','#b070ff',()=>scr='music',16);y+=62;
-  btn(50,y,440,52,'Звук: '+(D.snd?'вкл':'выкл'),'#4a7aff',()=>{D.snd^=1;save()},16);y+=62;
-  btn(50,y,440,52,'Музыка: '+(D.mus?'вкл':'выкл'),'#4a7aff',()=>{D.mus^=1;save()},16);y+=62;
-  btn(50,y,440,52,'Онлайн','#4a7aff',()=>scr='online',16);y+=62;
-  btn(50,y,440,52,'Промокод','#ffc030',()=>qolDailyCode(),16);y+=62;
-  btn(50,y,440,52,'Ремонт +30% HP (1 бой)','#3ad86a',()=>{D.quickRepair=true;save();toast('+30% HP в след. бою')},14);y+=62;
-  btn(50,y,440,52,'x2 XP сезона (1 бой)','#b070ff',()=>{D.seasonBoost=true;save();toast('x2 season XP')},14);y+=62;
-  if(D.admin||((D.prof&&D.prof.name)==='admin1')){
-    btn(50,y,440,52,'Админ-панель','#ff5a7a',()=>scr='admin',16);y+=62;
-  }
-  btn(50,y,440,52,'Сбросить прогресс','#ff5a7a',()=>{if(confirm('Стереть весь прогресс?')){localStorage.removeItem('po10');location.reload()}},16);
+  let y=78;
+  btn(50,y,440,48,'Плейлист / Музыка','#b070ff',()=>scr='music',15);y+=54;
+  btn(50,y,440,48,'Звук: '+(D.snd?'вкл':'выкл'),'#4a7aff',()=>{D.snd^=1;save()},15);y+=54;
+  btn(50,y,440,48,'Музыка: '+(D.mus?'вкл':'выкл'),'#4a7aff',()=>{D.mus^=1;save()},15);y+=54;
+  btn(50,y,440,48,'Онлайн','#4a7aff',()=>scr='online',15);y+=54;
+  btn(50,y,440,48,'Промокод','#ffc030',()=>qolDailyCode(),15);y+=54;
+  btn(50,y,440,48,'Ремонт +30% HP (1 бой)','#3ad86a',()=>{D.quickRepair=true;save();toast('+30% HP в след. бою')},14);y+=54;
+  btn(50,y,440,48,'x2 XP сезона (1 бой)','#b070ff',()=>{D.seasonBoost=true;save();toast('x2 season XP')},14);y+=54;
+  // всегда видна — удобный вход в админку
+  btn(50,y,440,48,(D.admin||isAdmin())?'Админ-панель ★':'Админ (вход)','#ff5a7a',()=>{
+    if(D.admin||isAdmin()){scr='admin';return}
+    const O=window.POOnline;
+    const email=((O&&O.session&&O.session.user&&O.session.user.email)||'').toLowerCase();
+    if(email===ADMIN_EMAIL.toLowerCase()){D.admin=true;save();scr='admin';toast('Админ OK');return}
+    // разрешить локальный вход только по паролю владельца
+    const p=prompt('Пароль админа (для ockasovmark5@gmail.com)');
+    if(p===ADMIN_PASS){D.admin=true;save();toast('Админ включён');scr='admin'}
+    else if(p) toast('Неверный пароль');
+  },15);y+=54;
+  btn(50,y,440,48,'Экспорт сохранения','#6a8aff',()=>{
+    try{
+      const data=localStorage.getItem('po10')||'{}';
+      const ta=document.createElement('textarea');ta.value=data;document.body.appendChild(ta);ta.select();
+      document.execCommand('copy');document.body.removeChild(ta);
+      toast('Сохранение скопировано в буфер');
+    }catch(e){toast('Ошибка экспорта')}
+  },14);y+=54;
+  btn(50,y,440,48,'Импорт сохранения','#6a8aff',()=>{
+    const raw=prompt('Вставь JSON сохранения');
+    if(!raw)return;
+    try{JSON.parse(raw);localStorage.setItem('po10',raw);toast('Импорт OK — перезагрузка');setTimeout(()=>location.reload(),400)}
+    catch(e){toast('Неверный JSON')}
+  },14);y+=54;
+  btn(50,y,440,48,'Сбросить прогресс','#ff5a7a',()=>{if(confirm('Стереть весь прогресс?')){localStorage.removeItem('po10');location.reload()}},14);
 }
 
 
@@ -2539,7 +2601,7 @@ function battle(){
     const ox=(i===0?-55:55)+Math.sin(T*2+i)*6,oy=-10+Math.cos(T*1.5+i)*4;
     if(SPR[ch.id]&&drawSpr(ch.id,P.x+ox,P.y+oy,0.9)){}else if(CSPR[ch.id])drawPix(CSPR[ch.id],CPAL,P.x+ox,P.y+oy,3.5);else{g.fillStyle=ch.col;g.fillRect(P.x+ox-8,P.y+oy-8,16,16)}
   });
-  if(P.hp>0){if(P.inv<=0||(B.t*20|0)%2){(()=>{const sk=SHIP_SKINS.find(x=>x.id===((D.shipSkins&&D.shipSkins.eq)||'default'))||SHIP_SKINS[0];const pal=Object.assign({},SPAL,{b:sk.col,c:sk.col});if(!drawSpr('ship',P.x,P.y,1.15))spr(SHIP,pal,P.x,P.y,5)})();const fl=5+Math.random()*7;g.fillStyle='#ffb04a';g.fillRect(P.x-10,P.y+30,5,fl);g.fillRect(P.x+5,P.y+30,5,fl)}
+  if(P.hp>0){if(P.inv<=0||(B.t*20|0)%2){const sk=SHIP_SKINS.find(x=>x.id===((D.shipSkins&&D.shipSkins.eq)||'default'))||SHIP_SKINS[0];drawPlayerShip(P.x,P.y,sk,1.05);}
   if(P.inv>.55){g.strokeStyle='#5affb0';g.lineWidth=3.5;g.shadowColor='#5affb0';g.shadowBlur=12;g.beginPath();g.arc(P.x,P.y,44,0,7);g.stroke();g.shadowBlur=0}}g.restore();
   panel(12,12,50,50,'#4a9aff');if(typeof drawIco==='function')drawIco('pause',37,37,4);else drawIcon2D('pause',37,37,1.2);hit(12,12,50,50,()=>{if(!B.over)B.pause=1});
   const be=en.find(e=>e.boss);if(be){tx(B.bn,70,24,16);bar(70,40,320,16,be.hp/be.mhp,'#ff2a3a');tx(Math.ceil(be.hp/be.mhp*100)+'%',230,49,12,'#fff','center');const tips=['Веер','Кристаллы','Спираль','Лёд','Порталы','Таран','Телепорт','Плазма','Притяжение','Гибрид'];tx(tips[be.btype|0]||'',400,24,13,'#9ec9ff')}
@@ -2581,7 +2643,16 @@ requestAnimationFrame(loop)}
 let drag=null;
 function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*540,(e.clientY-r.top)/r.height*H]}
 cv.addEventListener('pointerdown',e=>{const[x,y]=pos(e);for(let i=btns.length-1;i>=0;i--){const b=btns[i];if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){beep(660,.05);b.fn();return}}
-if(scr=='battle'&&drag===null){drag=e.pointerId;cv.setPointerCapture(e.pointerId)}});
-cv.addEventListener('pointermove',e=>{if(e.pointerId===drag&&P&&B&&!B.pause&&!B.over&&!B.auto){const r=cv.getBoundingClientRect();P.x+=e.movementX/r.width*540;P.y+=e.movementY/r.width*540}if((scr==='station'||scr==='home')&&e.buttons){stationCam.x+=e.movementX*0.55;stationCam.y+=e.movementY*0.55;stationCam.x=Math.max(-200,Math.min(200,stationCam.x));stationCam.y=Math.max(-180,Math.min(140,stationCam.y))}});
-const up=e=>{if(e.pointerId===drag)drag=null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+if(scr=='battle'&&drag===null){drag=e.pointerId;cv.setPointerCapture(e.pointerId)}
+if(scr==='season'&&y>150&&y<470){window._ssDrag=e.pointerId;window._ssStartX=x;window._ssStartScroll=window._ss||0;cv.setPointerCapture(e.pointerId)}});
+cv.addEventListener('pointermove',e=>{
+  const[x,y]=pos(e);
+  if(e.pointerId===drag&&P&&B&&!B.pause&&!B.over&&!B.auto){const r=cv.getBoundingClientRect();P.x+=e.movementX/r.width*540;P.y+=e.movementY/r.width*540}
+  if((scr==='station'||scr==='home')&&e.buttons){stationCam.x+=e.movementX*0.55;stationCam.y+=e.movementY*0.55;stationCam.x=Math.max(-200,Math.min(200,stationCam.x));stationCam.y=Math.max(-180,Math.min(140,stationCam.y))}
+  if(scr==='season'&&e.pointerId===window._ssDrag){
+    const dx=x-(window._ssStartX||0);
+    window._ss=Math.max(0,(window._ssStartScroll||0)-dx);
+  }
+});
+const up=e=>{if(e.pointerId===drag)drag=null;if(e.pointerId===window._ssDrag)window._ssDrag=0};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 requestAnimationFrame(loop);
